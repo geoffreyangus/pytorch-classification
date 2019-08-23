@@ -45,7 +45,7 @@ class CIFAR100(VisionDataset):
     ]
 
     def __init__(self, root, train=True, transform=None, target_transform=None,
-                 download=False, superclass=True):
+                 download=False, superclass=0):
 
         super(CIFAR100, self).__init__(root, transform=transform,
                                       target_transform=target_transform)
@@ -73,13 +73,16 @@ class CIFAR100(VisionDataset):
             self.target_key = 'fine_label'
             print('Using fine labels...')
 
+        if isinstance(self.target_key, tuple):
+            self.target_key = self.target_key[0]
+
         self.meta = {
         'filename': 'meta',
         'target_key': f'{self.target_key}_names',
         'md5': '7973b15100ade9c7d40fb424638fde48',
-            }   
-
-        file_path = os.path.join(self.root, self.base_folder, 'train')
+            }  
+        
+        file_path = os.path.join(self.root, self.base_folder, 'train' if train else 'test')
         with open(file_path, 'rb') as f:
             if sys.version_info[0] == 2:
                 self.data = pickle.load(f)
@@ -161,3 +164,11 @@ def collate_train(batch):
     imgs = torch.stack([a['img'] for a in batch])
     targets = torch.LongTensor([a['target'] for a in batch])
     return imgs, targets
+
+def collate_test(batch):
+    imgs = torch.stack([a['img'] for a in batch])
+    targets = torch.LongTensor([a['target'] for a in batch])
+    coarse_labels = torch.LongTensor([a['coarse_label'] for a in batch])
+    fine_labels = torch.LongTensor([a['fine_label'] for a in batch])
+    filenames = [a['filename'] for a in batch]
+    return imgs, targets, coarse_labels, fine_labels, filenames
