@@ -5,6 +5,7 @@ Copyright (c) Wei YANG, 2017
 from __future__ import print_function
 
 import argparse
+import ast
 import os
 import shutil
 import time
@@ -31,9 +32,13 @@ model_names = sorted(name for name in models.__dict__
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10/100 Training')
 # Datasets
 parser.add_argument('-d', '--dataset', default='cifar10', type=str)
-parser.add_argument('-ds', '--superclass', default=0, type=int)
 parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
+# For subset analysis
+parser.add_argument('-ds', '--superclass', default=0, type=int)
+parser.add_argument('--subsample_subclass', default='{}', type=str, help='string repr of subclass:subsample frac k:v pairs')
+parser.add_argument('--whiten_subclass', default='{}', type=str, help='string repr of subclass:whiten frac k:v pairs')
+
 # Optimization options
 parser.add_argument('--epochs', default=300, type=int, metavar='N',
                     help='number of total epochs to run')
@@ -129,13 +134,19 @@ def main():
 
     print(f'Using {num_classes} classes for training...')
 
-
-    trainset = dataloader(root='./data', train=True, download=True, transform=transform_train, superclass=args.superclass)
+    trainset = dataloader(root='./data', train=True, download=True, transform=transform_train, superclass=args.superclass, 
+                          subsample_subclass=ast.literal_eval(args.subsample_subclass),
+                          whiten_subclass=ast.literal_eval(args.whiten_subclass))
     trainloader = data.DataLoader(trainset, batch_size=args.train_batch, shuffle=True, num_workers=args.workers, collate_fn=collate_train)
 
-    testset = dataloader(root='./data', train=False, download=False, transform=transform_test, superclass=args.superclass)
+    testset = dataloader(root='./data', train=False, download=False, transform=transform_test, superclass=args.superclass,
+                         subsample_subclass=ast.literal_eval(args.subsample_subclass),
+                         whiten_subclass=ast.literal_eval(args.whiten_subclass))
     testloader = data.DataLoader(testset, batch_size=args.test_batch, shuffle=False, num_workers=args.workers, collate_fn=collate_train)
 
+    print(f'Length of training dataset: {len(trainset)}')
+    print(f'Length of testing dataset: {len(testset)}')
+    
     # Model
     print("==> creating model '{}'".format(args.arch))
     if args.arch.startswith('resnext'):

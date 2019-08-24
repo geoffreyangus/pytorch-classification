@@ -70,7 +70,7 @@ def load_trained_model(path):
     model.load_state_dict(checkpoint['state_dict'])
     return model, args
     
-def fetch_dataloaders(args):
+def fetch_dataloaders(args, subsample_subclass={}, whiten_subclass={}):
     """
     Preparing dataloaders 
     """
@@ -94,10 +94,12 @@ def fetch_dataloaders(args):
 
     print(f'Using {num_classes} classes...')
 
-    trainset = dataloader(root='./data', train=True, download=True, transform=transform_train, superclass=args.superclass)
+    trainset = dataloader(root='./data', train=True, download=True, transform=transform_train, superclass=args.superclass,
+                          subsample_subclass=subsample_subclass, whiten_subclass=whiten_subclass)
     trainloader = data.DataLoader(trainset, batch_size=args.train_batch, shuffle=True, num_workers=args.workers, collate_fn=collate_train)
 
-    testset = dataloader(root='./data', train=False, download=False, transform=transform_test, superclass=args.superclass)
+    testset = dataloader(root='./data', train=False, download=False, transform=transform_test, superclass=args.superclass,
+                         subsample_subclass=subsample_subclass,whiten_subclass=whiten_subclass, )
     testloader = data.DataLoader(testset, batch_size=args.test_batch, shuffle=False, num_workers=args.workers, collate_fn=collate_test)
     
     return {'train':trainloader, 'test':testloader}

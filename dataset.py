@@ -4,6 +4,7 @@ import os
 import os.path
 import numpy as np
 import sys
+import random
 
 import torch
 
@@ -30,6 +31,9 @@ class CIFAR100(VisionDataset):
         download (bool, optional): If true, downloads the dataset from the internet and
             puts it in root directory. If dataset is already downloaded, it is not
             downloaded again.
+        superclass (int, optinoal): If 0, use coarse labels; else use fine labels
+        subsample_subclass (dict, optional): string-float key-value pairs indicating
+            subclass to subsample and fraction of that subclass to retain at train time
 
     """
     base_folder = 'cifar-100-python'
@@ -45,8 +49,8 @@ class CIFAR100(VisionDataset):
     ]
 
     def __init__(self, root, train=True, transform=None, target_transform=None,
-                 download=False, superclass=0):
-
+                 download=False, superclass=0, subsample_subclass={}, whiten_subclass={}):
+        
         super(CIFAR100, self).__init__(root, transform=transform,
                                       target_transform=target_transform)
 
@@ -93,7 +97,27 @@ class CIFAR100(VisionDataset):
         self.data['data'] = self.data['data'].transpose((0, 2, 3, 1))  # convert to HWC
 
         self._load_meta()
-
+        
+        # Subsampling subclasses
+        if subsample_subclass is not {}:
+            for ky,val in subsample_subclass.items():
+                print(f'Subsampling {ky} fine class, keeping {val*100} percent...')
+                inds = [i for i, x in enumerate(self.data['fine_labels']) if x == self.fine_class_to_idx[ky]]
+                inds = random.sample(inds, int((1-val)*len(inds)))
+                for k in self.data.keys():
+                    self.data[k] = [i for j, i in enumerate(self.data[k]) if j not in inds]
+                    
+        # Whitening subclasses
+        if whiten_subclass is not {}:
+            unique_coarse_labels = list(set(self.data['coarse_labels']))
+            for ky,val in whiten_subclass.items():
+                print(f'Whitening {ky} fine class, keeping {val*100} percent...')
+                inds = [i for i, x in enumerate(self.data['fine_labels']) if x == self.fine_class_to_idx[ky]]
+                inds = random.sample(inds, int((1-val)*len(inds)))
+                for ii, _ in enumerate(self.data['coarse_labels']):
+                    if ii in inds:
+                        self.data['coarse_labels'][ii] = random.choice(unique_coarse_labels)
+                        
     def _load_meta(self):
         path = os.path.join(self.root, self.base_folder, self.meta['filename'])
         if not check_integrity(path, self.meta['md5']):
@@ -106,6 +130,7 @@ class CIFAR100(VisionDataset):
                 data = pickle.load(infile, encoding='latin1')
             self.classes = data[self.meta['target_key']]
         self.class_to_idx = {_class: i for i, _class in enumerate(self.classes)}
+        self.fine_class_to_idx = {_class: i for i, _class in enumerate(data['fine_label_names'])}
         
     def __getitem__(self, index):
         """
