@@ -7,6 +7,7 @@ from __future__ import print_function
 import argparse
 import ast
 import os
+import sys
 import shutil
 import time
 import random
@@ -38,6 +39,7 @@ parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
 parser.add_argument('-ds', '--superclass', default=0, type=int)
 parser.add_argument('--subsample_subclass', default='{}', type=str, help='string repr of subclass:subsample frac k:v pairs')
 parser.add_argument('--whiten_subclass', default='{}', type=str, help='string repr of subclass:whiten frac k:v pairs')
+parser.add_argument('--diff_subclass', default='{}', type=str, help='string repr of subclass_1:subclass_2 frac k:v pairs')
 
 # Optimization options
 parser.add_argument('--epochs', default=300, type=int, metavar='N',
@@ -105,13 +107,19 @@ if use_cuda:
 
 best_acc = 0  # best test accuracy
 
-def main():
+def main():   
     global best_acc
     start_epoch = args.start_epoch  # start from epoch 0 or last checkpoint epoch
 
     if not os.path.isdir(args.checkpoint):
         mkdir_p(args.checkpoint)
-
+    
+    # Writing command to file
+    cmd_msg = " ".join(sys.argv)
+    fout = open(os.path.join(args.checkpoint, "cmd.txt"), "w")
+    fout.write(cmd_msg + "\n")
+    fout.close()
+        
     # Data
     print('==> Preparing dataset %s' % args.dataset)
     transform_train = transforms.Compose([
@@ -136,12 +144,14 @@ def main():
 
     trainset = dataloader(root='./data', train=True, download=True, transform=transform_train, superclass=args.superclass, 
                           subsample_subclass=ast.literal_eval(args.subsample_subclass),
-                          whiten_subclass=ast.literal_eval(args.whiten_subclass))
+                          whiten_subclass=ast.literal_eval(args.whiten_subclass),
+                          diff_subclass = ast.literal_eval(args.diff_subclass))
     trainloader = data.DataLoader(trainset, batch_size=args.train_batch, shuffle=True, num_workers=args.workers, collate_fn=collate_train)
 
     testset = dataloader(root='./data', train=False, download=False, transform=transform_test, superclass=args.superclass,
                          subsample_subclass=ast.literal_eval(args.subsample_subclass),
-                         whiten_subclass=ast.literal_eval(args.whiten_subclass))
+                         whiten_subclass=ast.literal_eval(args.whiten_subclass),
+                         diff_subclass = ast.literal_eval(args.diff_subclass))
     testloader = data.DataLoader(testset, batch_size=args.test_batch, shuffle=False, num_workers=args.workers, collate_fn=collate_train)
 
     print(f'Length of training dataset: {len(trainset)}')

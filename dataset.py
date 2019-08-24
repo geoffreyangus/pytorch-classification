@@ -6,6 +6,7 @@ import numpy as np
 import sys
 import random
 
+from scipy.ndimage.filters import gaussian_filter
 import torch
 
 if sys.version_info[0] == 2:
@@ -49,7 +50,8 @@ class CIFAR100(VisionDataset):
     ]
 
     def __init__(self, root, train=True, transform=None, target_transform=None,
-                 download=False, superclass=0, subsample_subclass={}, whiten_subclass={}):
+                 download=False, superclass=0, subsample_subclass={}, whiten_subclass={},
+                 diff_subclass={}):
         
         super(CIFAR100, self).__init__(root, transform=transform,
                                       target_transform=target_transform)
@@ -117,6 +119,15 @@ class CIFAR100(VisionDataset):
                 for ii, _ in enumerate(self.data['coarse_labels']):
                     if ii in inds:
                         self.data['coarse_labels'][ii] = random.choice(unique_coarse_labels)
+                        
+        # Making difficult-to-discriminate subclasses
+        if diff_subclass is not {}:
+            for class_1, class_2 in diff_subclass.items():
+                print(f'Replacing class {class_1} with blurred {class_2}...')
+                inds_c1 = [i for i, x in enumerate(self.data['fine_labels']) if x == self.fine_class_to_idx[class_1]]
+                inds_c2 = [i for i, x in enumerate(self.data['fine_labels']) if x == self.fine_class_to_idx[class_2]]
+                for ii, ind in enumerate(inds_c1):
+                    self.data['data'][ind] = gaussian_filter(self.data['data'][inds_c2[ii]] , sigma=0.75)
                         
     def _load_meta(self):
         path = os.path.join(self.root, self.base_folder, self.meta['filename'])
