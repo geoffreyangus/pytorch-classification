@@ -127,7 +127,7 @@ class CIFAR100(VisionDataset):
                 inds_c1 = [i for i, x in enumerate(self.data['fine_labels']) if x == self.fine_class_to_idx[class_1]]
                 inds_c2 = [i for i, x in enumerate(self.data['fine_labels']) if x == self.fine_class_to_idx[class_2]]
                 for ii, ind in enumerate(inds_c1):
-                    self.data['data'][ind] = gaussian_filter(self.data['data'][inds_c2[ii]] , sigma=0.75)
+                    self.data['data'][ind] = gaussian_filter(self.data['data'][inds_c2[ii]] , sigma=1.25)
                         
     def _load_meta(self):
         path = os.path.join(self.root, self.base_folder, self.meta['filename'])

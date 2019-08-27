@@ -5,12 +5,28 @@ from types import SimpleNamespace
 
 import torch
 import torch.utils.data as data
+import torch.nn.functional as F
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
+
 
 import models.cifar as models
 from dataset import CIFAR100, collate_train, collate_test
 
+
+def extract_resnext_features(md,x):
+    """
+    Extract resnext features
+    """
+    x = md.module.conv_1_3x3.forward(x)
+    x = F.relu(md.module.bn_1.forward(x), inplace=True)
+    x = md.module.stage_1.forward(x)
+    x = md.module.stage_2.forward(x)
+    x = md.module.stage_3.forward(x)
+    x = F.avg_pool2d(x, 8, 1)
+    x = x.view(-1, 1024)
+    return x
+    
 def get_cnn(args, num_classes):
     """
     Loads CNN architecture in style of pytorch-classification
@@ -62,7 +78,7 @@ def load_trained_model(path):
     # Right now, for resnext only
     args = {'arch': model_type, 'depth':29, 'cardinality':8, 'widen_factor': 4, 'drop': 0,
             'superclass': superclass, 'dataset':dataset, 
-            'train_batch':128, 'test_batch':128, 'workers':6}
+            'train_batch':128, 'test_batch':32, 'workers':6}
     args = SimpleNamespace(**args)
     num_classes = 20 if args.superclass else 100
     model = get_cnn(args, num_classes)
