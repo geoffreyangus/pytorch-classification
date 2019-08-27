@@ -9,11 +9,31 @@ import torch.nn.functional as F
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 
+from sklearn.metrics import accuracy_score
+from collections import defaultdict
 
 import models.cifar as models
 from dataset import CIFAR100, collate_train, collate_test
 
-
+def get_coarse_accuracies(prediction_df):
+# Computing superclass accuracy and subclass accuracy
+    coarse_results = defaultdict(dict)
+    accuracy_type = 'coarse'
+    for coarse_class in prediction_df['coarse_labels_string'].unique():
+        coarse_accs = {}
+        coarse_class_df = prediction_df[prediction_df['coarse_labels_string']==coarse_class]
+        coarse_class_acc = accuracy_score(coarse_class_df[f'{accuracy_type}_labels'],coarse_class_df[f'preds'])
+        print(f'{coarse_class} superclass {accuracy_type} label accuracy: {coarse_class_acc}')
+        coarse_results['superclass'].update({coarse_class:coarse_class_acc})
+       # print(f"fine label disribution: {Counter(coarse_class_df['fine_labels_string'])}")
+        for ii, fine_class in enumerate(coarse_class_df['fine_labels_string'].unique()):
+            fine_class_df = coarse_class_df[coarse_class_df['fine_labels_string']==fine_class]
+            fine_class_acc = accuracy_score(fine_class_df[f'{accuracy_type}_labels'],fine_class_df[f'preds'])
+            print(f'{fine_class} subclass {accuracy_type} label accuracy: {fine_class_acc}')
+            coarse_results[f'subclass_{ii}'].update({coarse_class:fine_class_acc})
+        print('\n')
+    return coarse_results
+    
 def extract_resnext_features(md,x):
     """
     Extract resnext features
