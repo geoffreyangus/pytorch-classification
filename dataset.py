@@ -32,7 +32,7 @@ class CIFAR100(VisionDataset):
         download (bool, optional): If true, downloads the dataset from the internet and
             puts it in root directory. If dataset is already downloaded, it is not
             downloaded again.
-        superclass (int, optinoal): If 0, use coarse labels; else use fine labels
+        superclass (int, optinoal): If 0, use fine labels; else use coarse labels
         subsample_subclass (dict, optional): string-float key-value pairs indicating
             subclass to subsample and fraction of that subclass to retain at train time
 
