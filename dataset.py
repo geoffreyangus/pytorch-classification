@@ -18,7 +18,7 @@ from torchvision.datasets.vision import VisionDataset
 from torchvision.datasets.utils import check_integrity, download_and_extract_archive
 
 class CIFAR100(VisionDataset):
-    """`CIFAR109 <https://www.cs.toronto.edu/~kriz/cifar.html>`_ Dataset.
+    """`CIFAR100 <https://www.cs.toronto.edu/~kriz/cifar.html>`_ Dataset.
 
     Args:
         root (string): Root directory of dataset where directory
@@ -52,7 +52,7 @@ class CIFAR100(VisionDataset):
     def __init__(self, root, train=True, transform=None, target_transform=None,
                  download=False, superclass=0, subsample_subclass={}, whiten_subclass={},
                  diff_subclass={}):
-        
+
         super(CIFAR100, self).__init__(root, transform=transform,
                                       target_transform=target_transform)
 
@@ -86,8 +86,8 @@ class CIFAR100(VisionDataset):
         'filename': 'meta',
         'target_key': f'{self.target_key}_names',
         'md5': '7973b15100ade9c7d40fb424638fde48',
-            }  
-        
+            }
+
         file_path = os.path.join(self.root, self.base_folder, 'train' if train else 'test')
         with open(file_path, 'rb') as f:
             if sys.version_info[0] == 2:
@@ -99,7 +99,7 @@ class CIFAR100(VisionDataset):
         self.data['data'] = self.data['data'].transpose((0, 2, 3, 1))  # convert to HWC
 
         self._load_meta()
-        
+
         # Subsampling subclasses
         if subsample_subclass is not {}:
             for ky,val in subsample_subclass.items():
@@ -108,7 +108,7 @@ class CIFAR100(VisionDataset):
                 inds = random.sample(inds, int((1-val)*len(inds)))
                 for k in self.data.keys():
                     self.data[k] = [i for j, i in enumerate(self.data[k]) if j not in inds]
-                    
+
         # Whitening subclasses
         if whiten_subclass is not {}:
             unique_coarse_labels = list(set(self.data['coarse_labels']))
@@ -119,7 +119,7 @@ class CIFAR100(VisionDataset):
                 for ii, _ in enumerate(self.data['coarse_labels']):
                     if ii in inds:
                         self.data['coarse_labels'][ii] = random.choice(unique_coarse_labels)
-                        
+
         # Making difficult-to-discriminate subclasses
         if diff_subclass is not {}:
             for class_1, class_2 in diff_subclass.items():
@@ -128,7 +128,7 @@ class CIFAR100(VisionDataset):
                 inds_c2 = [i for i, x in enumerate(self.data['fine_labels']) if x == self.fine_class_to_idx[class_2]]
                 for ii, ind in enumerate(inds_c1):
                     self.data['data'][ind] = gaussian_filter(self.data['data'][inds_c2[ii]] , sigma=1.25)
-                        
+
     def _load_meta(self):
         path = os.path.join(self.root, self.base_folder, self.meta['filename'])
         if not check_integrity(path, self.meta['md5']):
@@ -142,7 +142,7 @@ class CIFAR100(VisionDataset):
             self.classes = data[self.meta['target_key']]
         self.class_to_idx = {_class: i for i, _class in enumerate(self.classes)}
         self.fine_class_to_idx = {_class: i for i, _class in enumerate(data['fine_label_names'])}
-        
+
     def __getitem__(self, index):
         """
         Args:

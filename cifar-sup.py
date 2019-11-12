@@ -246,7 +246,7 @@ def main():
                 'acc': test_acc,
                 'best_acc': best_acc,
                 'optimizer' : optimizer.state_dict(),
-            }, is_best, checkpoint=args.checkpoint)
+            }, is_best)
 
     logger.close()
     logger.plot()
