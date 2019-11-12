@@ -26,6 +26,8 @@ from dataset import CIFAR100, collate_train
 from utils import Bar, Logger, AverageMeter, accuracy, mkdir_p, savefig
 
 
+DATA_DIR = '/Users/geoffreyangus/data'
+
 model_names = sorted(name for name in models.__dict__
     if name.islower() and not name.startswith("__")
     and callable(models.__dict__[name]))
@@ -107,19 +109,19 @@ if use_cuda:
 
 best_acc = 0  # best test accuracy
 
-def main():   
+def main():
     global best_acc
     start_epoch = args.start_epoch  # start from epoch 0 or last checkpoint epoch
 
     if not os.path.isdir(args.checkpoint):
         mkdir_p(args.checkpoint)
-    
+
     # Writing command to file
     cmd_msg = " ".join(sys.argv)
     fout = open(os.path.join(args.checkpoint, "cmd.txt"), "w")
     fout.write(cmd_msg + "\n")
     fout.close()
-        
+
     # Data
     print('==> Preparing dataset %s' % args.dataset)
     transform_train = transforms.Compose([
@@ -142,13 +144,13 @@ def main():
 
     print(f'Using {num_classes} classes for training...')
 
-    trainset = dataloader(root='./data', train=True, download=True, transform=transform_train, superclass=args.superclass, 
+    trainset = dataloader(root=DATA_DIR, train=True, download=False, transform=transform_train, superclass=args.superclass,
                           subsample_subclass=ast.literal_eval(args.subsample_subclass),
                           whiten_subclass=ast.literal_eval(args.whiten_subclass),
                           diff_subclass = ast.literal_eval(args.diff_subclass))
     trainloader = data.DataLoader(trainset, batch_size=args.train_batch, shuffle=True, num_workers=args.workers, collate_fn=collate_train)
 
-    testset = dataloader(root='./data', train=False, download=False, transform=transform_test, superclass=args.superclass,
+    testset = dataloader(root=DATA_DIR, train=False, download=False, transform=transform_test, superclass=args.superclass,
                          subsample_subclass=ast.literal_eval(args.subsample_subclass),
                          whiten_subclass=ast.literal_eval(args.whiten_subclass),
                          diff_subclass = ast.literal_eval(args.diff_subclass))
@@ -156,7 +158,7 @@ def main():
 
     print(f'Length of training dataset: {len(trainset)}')
     print(f'Length of testing dataset: {len(testset)}')
-    
+
     # Model
     print("==> creating model '{}'".format(args.arch))
     if args.arch.startswith('resnext'):
@@ -191,7 +193,9 @@ def main():
     else:
         model = models.__dict__[args.arch](num_classes=num_classes)
 
-    model = torch.nn.DataParallel(model).cuda()
+    model = torch.nn.DataParallel(model)
+    if use_cuda:
+        model = model.cuda()
     cudnn.benchmark = True
     print('    Total params: %.2fM' % (sum(p.numel() for p in model.parameters())/1000000.0))
     criterion = nn.CrossEntropyLoss()
@@ -268,7 +272,8 @@ def train(trainloader, model, criterion, optimizer, epoch, use_cuda):
         data_time.update(time.time() - end)
 
         if use_cuda:
-            inputs, targets = inputs.cuda(), targets.cuda(async=True)
+            inputs = inputs.cuda()
+            targets = targets.cuda()
         inputs, targets = torch.autograd.Variable(inputs), torch.autograd.Variable(targets)
 
         # compute output
