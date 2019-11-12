@@ -9,7 +9,6 @@ import os
 import os.path as osp
 from uuid import uuid4
 import shutil
-import time
 import random
 
 import torch
@@ -21,10 +20,11 @@ import torch.utils.data as data
 from torch.utils.data import DataLoader
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
+from tqdm import tqdm
 
 from dataset import CIFAR100, collate_train
 import models.cifar as models
-from utils import Bar, Logger, AverageMeter, accuracy, mkdir_p, savefig
+from utils import Logger, AverageMeter, accuracy, mkdir_p, savefig
 
 from sacred import Experiment
 from sacred.observers import FileStorageObserver
@@ -71,6 +71,7 @@ def config():
         'diff_subclass': {}
     }
 
+    # dataset args per split
     dataset_configs = {
         'train': {
             'transform': transforms.Compose(
@@ -102,6 +103,7 @@ def config():
         }
     }
 
+    # dataloader args per split
     dataloader_configs = {
         'train': {
             'batch_size': 4,
@@ -128,13 +130,12 @@ def config():
         'gamma': 0.1                            # learning rate multiplied by gamma on schedule
     }
 
+    # model architecture
     if cifar_type == 'CIFAR10':
         num_classes = 10
     elif cifar_type == 'CIFAR100':
         num_classes = 20 if superclass else 100
-
-    # model architecture
-    model_name = 'densenet'                     # model architecture
+    model_name = 'densenet'
     model_args = {
         'num_classes': num_classes,
         'depth': 100,
@@ -291,18 +292,12 @@ class TrainingHarness(object):
         # switch to train mode
         self.model.train()
 
-        batch_time = AverageMeter()
-        data_time = AverageMeter()
         losses = AverageMeter()
         top1 = AverageMeter()
         top5 = AverageMeter()
-        end = time.time()
 
-        bar = Bar('Processing', max=len(self.dataloaders['train']))
+        t = tqdm(total=len(self.dataloaders['train']))
         for batch_idx, (inputs, targets) in enumerate(self.dataloaders['train']):
-            # measure data loading time
-            data_time.update(time.time() - end)
-
             if device != 'cpu':
                 inputs = inputs.cuda(device)
                 targets = targets.cuda(device)
@@ -330,24 +325,14 @@ class TrainingHarness(object):
             loss.backward()
             self.optimizer.step()
 
-            # measure elapsed time
-            batch_time.update(time.time() - end)
-            end = time.time()
-
             # plot progress
-            bar.suffix = '({batch}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | Loss: {loss:.4f} | top1: {top1: .4f} | top5: {top5: .4f}'.format(
-                batch=batch_idx + 1,
-                size=len(self.dataloaders['train']),
-                data=data_time.avg,
-                bt=batch_time.avg,
-                total=bar.elapsed_td,
-                eta=bar.eta_td,
-                loss=losses.avg,
-                top1=top1.avg,
-                top5=top5.avg,
+            t.set_postfix(
+                loss='{:.3f}'.format(losses.avg.numpy()),
+                top1='{:.3f}'.format(top1.avg.numpy()),
+                top5='{:.3f}'.format(top5.avg.numpy()),
             )
-            bar.next()
-        bar.finish()
+            t.update()
+        t.close()
         return (losses.avg, top1.avg)
 
     @ex.capture
@@ -355,18 +340,12 @@ class TrainingHarness(object):
         # switch to evaluate mode
         self.model.eval()
 
-        batch_time = AverageMeter()
-        data_time = AverageMeter()
         losses = AverageMeter()
         top1 = AverageMeter()
         top5 = AverageMeter()
 
-        end = time.time()
-        bar = Bar('Processing', max=len(self.dataloaders['test']))
+        t = tqdm(total=len(self.dataloaders['test']))
         for batch_idx, (inputs, targets) in enumerate(self.dataloaders['test']):
-            # measure data loading time
-            data_time.update(time.time() - end)
-
             if device != 'cpu':
                 inputs, targets = inputs.cuda(device), targets.cuda(device)
 
@@ -388,24 +367,14 @@ class TrainingHarness(object):
                 top1.update(prec1, inputs.size(0))
                 top5.update(prec5, inputs.size(0))
 
-            # measure elapsed time
-            batch_time.update(time.time() - end)
-            end = time.time()
-
             # plot progress
-            bar.suffix = '({batch}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | Loss: {loss:.4f} | top1: {top1: .4f} | top5: {top5: .4f}'.format(
-                batch=batch_idx + 1,
-                size=len(self.dataloaders['test']),
-                data=data_time.avg,
-                bt=batch_time.avg,
-                total=bar.elapsed_td,
-                eta=bar.eta_td,
-                loss=losses.avg,
-                top1=top1.avg,
-                top5=top5.avg,
+            t.set_postfix(
+                loss='{:.3f}'.format(losses.avg.numpy()),
+                top1='{:.3f}'.format(top1.avg.numpy()),
+                top5='{:.3f}'.format(top5.avg.numpy()),
             )
-            bar.next()
-        bar.finish()
+            t.update()
+        t.close()
         return (losses.avg, top1.avg)
 
     @ex.capture
