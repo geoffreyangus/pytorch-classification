@@ -23,15 +23,16 @@ def get_coarse_accuracies(prediction_df):
         coarse_accs = {}
         coarse_class_df = prediction_df[prediction_df['coarse_labels_string']==coarse_class]
         coarse_class_acc = accuracy_score(coarse_class_df[f'{accuracy_type}_labels'],coarse_class_df[f'preds'])
-        print(f'{coarse_class} superclass {accuracy_type} label accuracy: {coarse_class_acc}')
+        print(f'{accuracy_type} label accuracy: {coarse_class_acc} \t (superclass: {coarse_class})')
+        print('--')
         coarse_results['superclass'].update({coarse_class:coarse_class_acc})
        # print(f"fine label disribution: {Counter(coarse_class_df['fine_labels_string'])}")
         for ii, fine_class in enumerate(coarse_class_df['fine_labels_string'].unique()):
             fine_class_df = coarse_class_df[coarse_class_df['fine_labels_string']==fine_class]
             fine_class_acc = accuracy_score(fine_class_df[f'{accuracy_type}_labels'],fine_class_df[f'preds'])
-            print(f'{fine_class} subclass {accuracy_type} label accuracy: {fine_class_acc}')
+            print(f'{accuracy_type} label accuracy: {fine_class_acc}\t (subclass: {fine_class})')
             coarse_results[f'subclass_{ii}'].update({coarse_class:fine_class_acc})
-        print('\n')
+        print('==\n')
     return coarse_results
     
 def extract_resnext_features(md,x):
@@ -47,66 +48,23 @@ def extract_resnext_features(md,x):
     x = x.view(-1, 1024)
     return x
     
-def get_cnn(args, num_classes):
+def get_cnn(model_name, model_args):
     """
     Loads CNN architecture in style of pytorch-classification
     """
-    if args.arch.startswith('resnext'):
-        model = models.__dict__[args.arch](
-                    cardinality=args.cardinality,
-                    num_classes=num_classes,
-                    depth=args.depth,
-                    widen_factor=args.widen_factor,
-                    dropRate=args.drop,
-                )
-    elif args.arch.startswith('densenet'):
-        model = models.__dict__[args.arch](
-                    num_classes=num_classes,
-                    depth=args.depth,
-                    growthRate=args.growthRate,
-                    compressionRate=args.compressionRate,
-                    dropRate=args.drop,
-                )
-    elif args.arch.startswith('wrn'):
-        model = models.__dict__[args.arch](
-                    num_classes=num_classes,
-                    depth=args.depth,
-                    widen_factor=args.widen_factor,
-                    dropRate=args.drop,
-                )
-    elif args.arch.endswith('resnet'):
-        model = models.__dict__[args.arch](
-                    num_classes=num_classes,
-                    depth=args.depth,
-                    block_name=args.block_name,
-                )
-    else:
-        model = models.__dict__[args.arch](num_classes=num_classes)
-        
+    model = models.__dict__[model_name](
+        **model_args
+    )        
     return torch.nn.DataParallel(model)
         
-def load_trained_model(path):
-    """
-    Loads model trained with pytorch-classification
+def load_trained_model(cifar_type, model_name, model_args, checkpoint_dir):
     
-    TODO: Expand from resnext to other model types 
-    """
-    model_type = path.split('/')[-1].split('-')[0]
-    superclass = 'superclass' in path
-    if 'cifar100' in path:
-        dataset = 'cifar100'
-    # Right now, for resnext only
-    args = {'arch': model_type, 'depth':29, 'cardinality':8, 'widen_factor': 4, 'drop': 0,
-            'superclass': superclass, 'dataset':dataset, 
-            'train_batch':128, 'test_batch':32, 'workers':6}
-    args = SimpleNamespace(**args)
-    num_classes = 20 if args.superclass else 100
-    model = get_cnn(args, num_classes)
-    checkpoint = torch.load(f'{path}/model_best.pth.tar')
+    model = get_cnn(model_name, model_args)
+    checkpoint = torch.load(f'{checkpoint_dir}/model_best.pth.tar')
     model.load_state_dict(checkpoint['state_dict'])
-    return model, args
+    return model
     
-def fetch_dataloaders(args, subsample_subclass={}, whiten_subclass={}, diff_subclass={}):
+def fetch_dataloaders(data_dir, cifar_type, superclass, dataset_configs, dataloader_configs):
     """
     Preparing dataloaders 
     """
@@ -116,28 +74,32 @@ def fetch_dataloaders(args, subsample_subclass={}, whiten_subclass={}, diff_subc
         transforms.ToTensor(),
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
     ])
+    dataset_configs['train']['transform'] = transform_train
 
     transform_test = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
     ])
-    if args.dataset == 'cifar10':
-        dataloader = datasets.CIFAR10
+    dataset_configs['test']['transform'] = transform_test
+    
+    if cifar_type == 'CIFAR10':
+        dataset_class = datasets.CIFAR10
         num_classes = 10
     else:
-        dataloader = CIFAR100
-        num_classes = 20 if args.superclass > 0 else 100
+        dataset_class = CIFAR100
+        num_classes = 20 if superclass else 100
 
     print(f'Using {num_classes} classes...')
 
-    trainset = dataloader(root='./data', train=True, download=True, transform=transform_train, superclass=args.superclass,
-                          subsample_subclass=subsample_subclass, whiten_subclass=whiten_subclass,
-                          diff_subclass=diff_subclass)
-    trainloader = data.DataLoader(trainset, batch_size=args.train_batch, shuffle=True, num_workers=args.workers, collate_fn=collate_train)
-
-    testset = dataloader(root='./data', train=False, download=False, transform=transform_test, superclass=args.superclass,
-                         subsample_subclass=subsample_subclass,whiten_subclass=whiten_subclass,
-                         diff_subclass=diff_subclass)
-    testloader = data.DataLoader(testset, batch_size=args.test_batch, shuffle=False, num_workers=args.workers, collate_fn=collate_test)
+    datasets = {}
+    for split, ds_args in dataset_configs.items():
+        datasets[split] = dataset_class(root=data_dir, train=(split=='train'), download=False,
+                                        **ds_args)
     
-    return {'train':trainloader, 'test':testloader}
+    dataloaders = {}
+    for split, dl_args in dataloader_configs.items():
+        dataloaders[split] = data.DataLoader(datasets[split], 
+                                             collate_fn=collate_train if split=='train' else collate_test,
+                                             **dl_args)
+
+    return dataloaders

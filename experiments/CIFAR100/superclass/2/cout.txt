@@ -1,0 +1,13 @@
+INFO - training - Running command 'main'
+INFO - training - Started run with ID "2"
+Using coarse labels...
+INFO - _init_datasets - loaded train dataset for CIFAR100
+INFO - _init_datasets - length of train dataset: 50000
+Using coarse labels...
+INFO - _init_datasets - loaded test dataset for CIFAR100
+INFO - _init_datasets - length of test dataset: 10000
+INFO - _init_dataloaders - loaded train dataloader
+INFO - _init_dataloaders - loaded test dataloader
+INFO - _init_model - total params: 0.77M
+INFO - run - 
+Epoch: [1 | 300] LR: 0.100000
