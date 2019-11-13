@@ -18,6 +18,7 @@ import torch.backends.cudnn as cudnn
 import torch.utils.data as data
 from torch.utils.data import DataLoader
 import torch.optim as optimizers
+import torch.optim.lr_scheduler as schedulers
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 from tqdm import tqdm
@@ -119,6 +120,20 @@ def config():
         }
     }
 
+    # model architecture
+    if cifar_type == 'CIFAR10':
+        num_classes = 10
+    elif cifar_type == 'CIFAR100':
+        num_classes = 20 if superclass else 100
+    model_name = 'densenet'
+    model_args = {
+        'num_classes': num_classes,
+        'depth': 100,
+        'growthRate': 12,
+        'compressionRate': 2,
+        'dropRate': 0.0
+    }
+
     # criterion config
     criterion_class = 'CrossEntropyLoss'
     criterion_args = {}
@@ -132,23 +147,10 @@ def config():
     }
 
     # scheduler config
+    scheduler_class = 'MultiStepLR'
     scheduler_args = {
-        'schedule': [150, 225],                 # epoch numbers to decrease learning rate
+        'milestones': [150, 225],               # epoch numbers to decrease learning rate
         'gamma': 0.1                            # learning rate multiplied by gamma on schedule
-    }
-
-    # model architecture
-    if cifar_type == 'CIFAR10':
-        num_classes = 10
-    elif cifar_type == 'CIFAR100':
-        num_classes = 20 if superclass else 100
-    model_name = 'densenet'
-    model_args = {
-        'num_classes': num_classes,
-        'depth': 100,
-        'growthRate': 12,
-        'compressionRate': 2,
-        'dropRate': 0.0
     }
 
 
