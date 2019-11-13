@@ -162,7 +162,6 @@ class TrainingHarness(object):
         """
         # optional state dict for manual controls
         self.state = {}
-        self.best_acc = 0.0
 
         self._init_meta()
         self.datasets = self._init_datasets()
@@ -170,6 +169,9 @@ class TrainingHarness(object):
         self.model = self._init_model()
         self.criterion = self._init_criterion()
         self.optimizer = self._init_optimizer()
+
+        self.start_epoch, self.best_acc = self._load_checkpoint()
+
         self.scheduler = self._init_scheduler()
 
     @ex.capture
@@ -225,10 +227,22 @@ class TrainingHarness(object):
         return optimizer
 
     @ex.capture
+    def _load_checkpoint(self, resume):
+        start_epoch = 0
+        best_acc = 0.0
+        if resume:
+            checkpoint = torch.load(resume)
+            start_epoch = checkpoint['epoch']
+            best_acc = checkpoint['best_acc']
+            self.model.load_state_dict(checkpoint['state_dict'])
+            self.optimizer.load_state_dict(checkpoint['optimizer'])
+        return start_epoch, best_acc
+
+    @ex.capture
     def _init_scheduler(self, scheduler_class, scheduler_args):
         if scheduler_class == None:
             return None
-        scheduler = getattr(schedulers, scheduler_class)(self.optimizer, **scheduler_args)
+        scheduler = getattr(schedulers, scheduler_class)(self.optimizer, last_epoch=self.start_epoch, **scheduler_args)
         return scheduler
 
     @ex.capture
@@ -236,13 +250,7 @@ class TrainingHarness(object):
         if not os.path.isdir(checkpoint_dir):
             mkdir_p(checkpoint_dir)
 
-        start_epoch = 0
         if resume:
-            checkpoint = torch.load(resume)
-            best_acc = checkpoint['best_acc']
-            start_epoch = checkpoint['epoch']
-            self.model.load_state_dict(checkpoint['state_dict'])
-            self.optimizer.load_state_dict(checkpoint['optimizer'])
             logger = Logger(osp.join(checkpoint_dir, 'log.txt'), resume=True)
         else:
             logger = Logger(osp.join(checkpoint_dir, 'log.txt'))
@@ -251,7 +259,7 @@ class TrainingHarness(object):
 
         if evaluate:
             _log.info('evaluation only')
-            test_loss, test_acc = self.test(start_epoch, cuda)
+            test_loss, test_acc = self.test(self.start_epoch, device)
             _log.info('test loss:  %.8f, test acc:  %.2f' %
                       (test_loss, test_acc))
             return {
@@ -262,7 +270,7 @@ class TrainingHarness(object):
             }
 
         # begin training
-        for epoch in range(start_epoch, num_epochs):
+        for epoch in range(self.start_epoch, num_epochs):
             learning_rate = self.scheduler.get_lr()[0]
             _log.info('\nEpoch: [%d | %d] LR: %f' %
                       (epoch + 1, num_epochs, learning_rate))
