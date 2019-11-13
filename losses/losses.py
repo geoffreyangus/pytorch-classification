@@ -99,7 +99,7 @@ class LMCL_loss(nn.Module):
 
         y_onehot = torch.FloatTensor(batch_size, self.num_classes)
         y_onehot.zero_()
-        y_onehot = Variable(y_onehot).cuda()
+        y_onehot = Variable(y_onehot).to(feat.device)
         y_onehot.scatter_(1, torch.unsqueeze(label, dim=-1), self.m)
         margin_logits = self.s * (logits - y_onehot)
 
