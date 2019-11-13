@@ -18,6 +18,7 @@ import torch.backends.cudnn as cudnn
 import torch.utils.data as data
 from torch.utils.data import DataLoader
 import torch.optim as optimizers
+import torch.optim.lr_scheduler as schedulers
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 from tqdm import tqdm
@@ -152,6 +153,7 @@ def config():
     }
 
     # scheduler config
+    scheduler_class = None
     scheduler_args = {
         # epoch numbers to decrease learning rate
         'schedule': [150, 225],
@@ -220,12 +222,14 @@ class TrainingHarness(object):
         return model
 
     @ex.capture
-    def _init_criterion(self, criterion_class, criterion_args):
+    def _init_criterion(self, device, criterion_class, criterion_args):
         assert criterion_class == 'LMCL_loss', \
             'this file is for LMCL loss only due to training schematic'
         criterion_dict = {}
         criterion_dict['nll_loss'] = losses.CrossEntropyLoss()
         criterion_dict['lmcl_loss'] = getattr(losses, criterion_class)(**criterion_args)
+        if device != 'cpu':
+            criterion_dict['lmcl_loss'] = criterion_dict['lmcl_loss'].cuda()
 
         return criterion_dict
 
@@ -238,6 +242,7 @@ class TrainingHarness(object):
 
     @ex.capture
     def _init_scheduler(self, scheduler_class, scheduler_args):
+        scheduler_dict = {}
         scheduler_dict['nn'] = schedulers.StepLR(self.optimizer['nn'], 20, gamma=0.5)
         scheduler_dict['centers'] = schedulers.StepLR(self.optimizer['centers'], 20, gamma=0.5)
         return scheduler_dict
@@ -277,7 +282,7 @@ class TrainingHarness(object):
             self.scheduler['nn'].step()
             self.scheduler['centers'].step()
 
-            learning_rate = self.scheduler.get_lr()[0]
+            learning_rate = self.scheduler['nn'].get_lr()[0]
             _log.info('\nEpoch: [%d | %d] LR: %f' %
                       (epoch + 1, num_epochs, learning_rate))
 
@@ -334,7 +339,7 @@ class TrainingHarness(object):
 
             # compute output
             emb, out = self.model(inputs)
-            outputs, mlogits = self.criterion['lmcl'](emb, targets)
+            outputs, mlogits = self.criterion['lmcl_loss'](emb, targets)
             loss = self.criterion['nll_loss'](mlogits, targets)
 
             # measure accuracy and record loss

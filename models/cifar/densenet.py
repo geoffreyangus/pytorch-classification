@@ -85,6 +85,7 @@ class DenseNet(nn.Module):
 
         self.growthRate = growthRate
         self.dropRate = dropRate
+        self.embeddings = embeddings
 
         # self.inplanes is a global variable used across multiple
         # helper functions
