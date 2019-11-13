@@ -242,7 +242,7 @@ class TrainingHarness(object):
     def _init_scheduler(self, scheduler_class, scheduler_args):
         if scheduler_class == None:
             return None
-        scheduler = getattr(schedulers, scheduler_class)(self.optimizer, last_epoch=self.start_epoch, **scheduler_args)
+        scheduler = getattr(schedulers, scheduler_class)(self.optimizer, last_epoch=self.start_epoch - 1, **scheduler_args)
         return scheduler
 
     @ex.capture
