@@ -119,24 +119,6 @@ def config():
         }
     }
 
-    # criterion config
-    criterion_class = 'CrossEntropyLoss'
-    criterion_args = {}
-
-    # optimizer config
-    optimizer_class = 'SGD'
-    optimizer_args = {
-        'lr': 0.1,
-        'momentum': 0.9,
-        'weight_decay': 1e-4                    # typically 1e-4
-    }
-
-    # scheduler config
-    scheduler_args = {
-        'schedule': [150, 225],                 # epoch numbers to decrease learning rate
-        'gamma': 0.1                            # learning rate multiplied by gamma on schedule
-    }
-
     # model architecture
     if cifar_type == 'CIFAR10':
         num_classes = 10
@@ -148,7 +130,32 @@ def config():
         'depth': 100,
         'growthRate': 12,
         'compressionRate': 2,
-        'dropRate': 0.0
+        'dropRate': 0.0,
+        'embeddings': True
+    }
+
+    # criterion config
+    criterion_class = 'LMCL_loss'
+    criterion_args = {
+        'num_classes': num_classes,
+        'feat_dim': model_args['growthRate'] * 2,
+        's': 7.00,
+        'm': 0.2
+    }
+
+    # optimizer config
+    optimizer_class = 'SGD'
+    optimizer_args = {
+        'lr': 0.1,
+        'momentum': 0.9,
+        'weight_decay': 1e-4                    # typically 1e-4
+    }
+
+    # scheduler config
+    scheduler_args = {
+        # epoch numbers to decrease learning rate
+        'schedule': [150, 225],
+        'gamma': 0.1                            # learning rate multiplied by gamma on schedule
     }
 
 
@@ -214,20 +221,26 @@ class TrainingHarness(object):
 
     @ex.capture
     def _init_criterion(self, criterion_class, criterion_args):
-        criterion = getattr(losses, criterion_class)(**criterion_args)
-        return criterion
+        assert criterion_class == 'LMCL_loss', \
+            'this file is for LMCL loss only due to training schematic'
+        criterion_dict = {}
+        criterion_dict['nll_loss'] = losses.CrossEntropyLoss()
+        criterion_dict['lmcl_loss'] = getattr(losses, criterion_class)(**criterion_args)
+
+        return criterion_dict
 
     @ex.capture
     def _init_optimizer(self, optimizer_class, optimizer_args):
-        optimizer = getattr(optimizers, optimizer_class)(self.model.parameters(), **optimizer_args)
-        return optimizer
+        optimizer_dict = {}
+        optimizer_dict['nn'] = optimizers.SGD(self.model.parameters(), lr=0.001, momentum=0.9, weight_decay=0.0005)
+        optimizer_dict['centers'] = optimizers.SGD(self.criterion['lmcl_loss'].parameters(), lr=0.01)
+        return optimizer_dict
 
     @ex.capture
     def _init_scheduler(self, scheduler_class, scheduler_args):
-        if scheduler_class == None:
-            return None
-        scheduler = getattr(schedulers, scheduler_class)(self.optimizer, **scheduler_args)
-        return scheduler
+        scheduler_dict['nn'] = schedulers.StepLR(self.optimizer['nn'], 20, gamma=0.5)
+        scheduler_dict['centers'] = schedulers.StepLR(self.optimizer['centers'], 20, gamma=0.5)
+        return scheduler_dict
 
     @ex.capture
     def run(self, _log, device, resume, checkpoint_dir, evaluate, num_epochs):
@@ -261,8 +274,8 @@ class TrainingHarness(object):
 
         # begin training
         for epoch in range(start_epoch, num_epochs):
-            if self.scheduler is not None:
-                self.scheduler.step()
+            self.scheduler['nn'].step()
+            self.scheduler['centers'].step()
 
             learning_rate = self.scheduler.get_lr()[0]
             _log.info('\nEpoch: [%d | %d] LR: %f' %
@@ -320,8 +333,9 @@ class TrainingHarness(object):
                 inputs), torch.autograd.Variable(targets)
 
             # compute output
-            outputs = self.model(inputs)
-            loss = self.criterion(outputs, targets)
+            emb, out = self.model(inputs)
+            outputs, mlogits = self.criterion['lmcl'](emb, targets)
+            loss = self.criterion['nll_loss'](mlogits, targets)
 
             # measure accuracy and record loss
             prec1, prec5 = accuracy(outputs.data, targets.data, topk=(1, 5))
@@ -335,9 +349,12 @@ class TrainingHarness(object):
                 top5.update(prec5, inputs.size(0))
 
             # compute gradient and do SGD step
-            self.optimizer.zero_grad()
+            self.optimizer['nn'].zero_grad()
+            self.optimizer['centers'].zero_grad()
+
             loss.backward()
-            self.optimizer.step()
+            self.optimizer['nn'].step()
+            self.optimizer['centers'].step()
 
             # plot progress
             t.set_postfix(
@@ -367,8 +384,9 @@ class TrainingHarness(object):
                 inputs, volatile=True), torch.autograd.Variable(targets)
 
             # compute output
-            outputs = self.model(inputs)
-            loss = self.criterion(outputs, targets)
+            emb, out = self.model(inputs)
+            outputs, mlogits = self.criterion['lmcl'](emb, targets)
+            loss = self.criterion['nll_loss'](mlogits, targets)
 
             # measure accuracy and record loss
             prec1, prec5 = accuracy(outputs.data, targets.data, topk=(1, 5))
