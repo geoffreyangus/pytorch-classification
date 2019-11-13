@@ -9,6 +9,7 @@ import os
 import os.path as osp
 from uuid import uuid4
 import shutil
+import time
 import random
 
 import torch
@@ -17,14 +18,12 @@ import torch.nn.parallel
 import torch.backends.cudnn as cudnn
 import torch.optim as optim
 import torch.utils.data as data
-from torch.utils.data import DataLoader
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
-from tqdm import tqdm
 
 from dataset import CIFAR100, collate_train
 import models.cifar as models
-from utils import Logger, AverageMeter, accuracy, mkdir_p, savefig
+from utils import Bar, Logger, AverageMeter, accuracy, mkdir_p, savefig
 
 from sacred import Experiment
 from sacred.observers import FileStorageObserver
@@ -39,17 +38,12 @@ def config():
     Config for training harness.
     """
     cifar_type = 'CIFAR100'
-    assert cifar_type in {'CIFAR10', 'CIFAR100'}, f'cifar_type {cifar_type}'
-
     hypothesis_conditions = [cifar_type, 'superclass']
     exp_dir = osp.join('experiments', *hypothesis_conditions)
 
     # meta
-    data_dir = '/Users/geoffreyangus/data'       # on DAWN: '/lfs/1/gangus/data'
-    data_dir = '/lfs/1/gangus/data'
-
-    cuda = torch.cuda.is_available()
-    device = 0 if cuda else 'cpu'
+    data_dir = 'Users/geoffreyangus/data'       # on DAWN: '/lfs/1/gangus/data'
+    device = 'cpu'
 
     checkpoint_dir = osp.join('checkpoints', str(uuid4()))
     num_epochs = 300
@@ -72,7 +66,6 @@ def config():
         'diff_subclass': {}
     }
 
-    # dataset args per split
     dataset_configs = {
         'train': {
             'transform': transforms.Compose(
@@ -104,7 +97,6 @@ def config():
         }
     }
 
-    # dataloader args per split
     dataloader_configs = {
         'train': {
             'batch_size': 128,
@@ -132,16 +124,11 @@ def config():
     }
 
     # model architecture
-    if cifar_type == 'CIFAR10':
-        num_classes = 10
-    elif cifar_type == 'CIFAR100':
-        num_classes = 20 if superclass else 100
-    model_name = 'densenet'
+    model_name = 'densenet'                     # model architecture
     model_args = {
-        'num_classes': num_classes,
         'depth': 100,
-        'growthRate': 12,
-        'compressionRate': 2,
+        'growth_rate': 12,
+        'compression_rate': 2,
         'dropRate': 0.0
     }
 
@@ -168,16 +155,19 @@ class TrainingHarness(object):
         cudnn.benchmark = True
 
     @ex.capture
-    def _init_datasets(self, _log, cifar_type, superclass_config,
+    def _init_datasets(self, _log, cifar_type, superclass, superclass_configs,
                        data_dir, dataset_configs):
         datasets = {}
         for split in ['train', 'test']:
             if cifar_type == 'CIFAR10':
                 dataset_class = torchvision.datasets.CIFAR10
+                num_classes = 10
             else:
                 dataset_class = CIFAR100
+                num_classes = 20 if superclass else 100
             datasets[split] = dataset_class(root=data_dir, train=(split == 'train'),
-                                            download=False, **dataset_configs[split])
+                                            download=False, superclass=superclass,
+                                            **dataset_configs[split])
             _log.info(f'loaded {split} dataset for {cifar_type}')
             _log.info(f'length of {split} dataset: {len(datasets[split])}')
         return datasets
@@ -192,7 +182,7 @@ class TrainingHarness(object):
             dataloaders[split] = DataLoader(self.datasets[split],
                                             collate_fn=collate_train,
                                             **dataloader_configs[split])
-            _log.info(f'loaded {split} dataloader')
+            _log.info(f'loaded {split} dataloader for {cifar_type}')
         return dataloaders
 
     @ex.capture
@@ -214,13 +204,9 @@ class TrainingHarness(object):
     def _init_optimizer(self, optimizer_args):
         self.state['lr'] = optimizer_args['lr']
         optimizer = optim.SGD(self.model.parameters(), **optimizer_args)
-        return optimizer
 
     @ex.capture
-    def run(self, _log, device, resume, checkpoint_dir, evaluate, num_epochs):
-        if not os.path.isdir(checkpoint_dir):
-            mkdir_p(checkpoint_dir)
-
+    def run(self, _log, cuda, resume, checkpoint_dir, evaluate, start_epoch, num_epochs):
         start_epoch = 0
         if resume:
             checkpoint = torch.load(resume)
@@ -252,56 +238,55 @@ class TrainingHarness(object):
             _log.info('\nEpoch: [%d | %d] LR: %f' %
                       (epoch + 1, num_epochs, self.state['lr']))
 
-            train_loss, train_acc = self.train(epoch, device)
-            test_loss, test_acc = self.test(epoch, device)
+            train_loss, train_acc = self.train(self.dataloaders['train'],
+                                               self.model, self.criterion,
+                                               self.optimizer, epoch, cuda)
+            test_loss, test_acc = self.test(self.dataloaders['test'],
+                                            self.model, self.criterion,
+                                            epoch, cuda)
 
             # append logger file
-            logger.append([self.state['lr'], train_loss,
+            logger.append([state['lr'], train_loss,
                            test_loss, train_acc, test_acc])
 
             # save model
             is_best = test_acc > self.best_acc
             self.best_acc = max(test_acc, self.best_acc)
 
-            self._save_checkpoint({
+            self.save_checkpoint({
                 'epoch': epoch + 1,
-                'state_dict': self.model.state_dict(),
+                'state_dict': model.state_dict(),
                 'acc': test_acc,
                 'best_acc': self.best_acc,
-                'optimizer': self.optimizer.state_dict(),
-            }, is_best)
+                'optimizer': optimizer.state_dict(),
+            }, is_best, checkpoint=checkpoint_dir)
 
-            self._adjust_learning_rate(epoch)
+            self.adjust_learning_rate(epoch)
 
         logger.close()
         logger.plot()
         savefig(osp.join(self.checkpoint_dir, 'log.eps'))
 
-        return {
-            'train': {
-                'loss': train_loss,
-                'acc': train_acc
-            },
-            'test': {
-                'loss': test_loss,
-                'acc': test_acc
-            }
-        }
-
     @ex.capture
-    def train(self, epoch, device):
+    def train(self, epoch, cuda):
         # switch to train mode
         self.model.train()
 
+        batch_time = AverageMeter()
+        data_time = AverageMeter()
         losses = AverageMeter()
         top1 = AverageMeter()
         top5 = AverageMeter()
+        end = time.time()
 
-        t = tqdm(total=len(self.dataloaders['train']))
+        bar = Bar('Processing', max=len(self.dataloaders['train']))
         for batch_idx, (inputs, targets) in enumerate(self.dataloaders['train']):
-            if device != 'cpu':
-                inputs = inputs.cuda(device)
-                targets = targets.cuda(device)
+            # measure data loading time
+            data_time.update(time.time() - end)
+
+            if cuda:
+                inputs = inputs.cuda()
+                targets = targets.cuda()
 
             inputs, targets = torch.autograd.Variable(
                 inputs), torch.autograd.Variable(targets)
@@ -323,32 +308,48 @@ class TrainingHarness(object):
 
             # compute gradient and do SGD step
             self.optimizer.zero_grad()
-            loss.backward()
+            self.loss.backward()
             self.optimizer.step()
 
+            # measure elapsed time
+            batch_time.update(time.time() - end)
+            end = time.time()
+
             # plot progress
-            t.set_postfix(
-                loss='{:.3f}'.format(losses.avg.cpu().numpy()),
-                top1='{:.3f}'.format(top1.avg.cpu().numpy()),
-                top5='{:.3f}'.format(top5.avg.cpu().numpy()),
+            bar.suffix = '({batch}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | Loss: {loss:.4f} | top1: {top1: .4f} | top5: {top5: .4f}'.format(
+                batch=batch_idx + 1,
+                size=len(self.dataloaders['train']),
+                data=data_time.avg,
+                bt=batch_time.avg,
+                total=bar.elapsed_td,
+                eta=bar.eta_td,
+                loss=losses.avg,
+                top1=top1.avg,
+                top5=top5.avg,
             )
-            t.update()
-        t.close()
+            bar.next()
+        bar.finish()
         return (losses.avg, top1.avg)
 
     @ex.capture
-    def test(self, epoch, device):
+    def test(self, epoch, cuda):
         # switch to evaluate mode
         self.model.eval()
 
+        batch_time = AverageMeter()
+        data_time = AverageMeter()
         losses = AverageMeter()
         top1 = AverageMeter()
         top5 = AverageMeter()
 
-        t = tqdm(total=len(self.dataloaders['test']))
+        end = time.time()
+        bar = Bar('Processing', max=len(self.dataloaders['test']))
         for batch_idx, (inputs, targets) in enumerate(self.dataloaders['test']):
-            if device != 'cpu':
-                inputs, targets = inputs.cuda(device), targets.cuda(device)
+            # measure data loading time
+            data_time.update(time.time() - end)
+
+            if cuda:
+                inputs, targets = inputs.cuda(), targets.cuda()
 
             inputs, targets = torch.autograd.Variable(
                 inputs, volatile=True), torch.autograd.Variable(targets)
@@ -368,14 +369,24 @@ class TrainingHarness(object):
                 top1.update(prec1, inputs.size(0))
                 top5.update(prec5, inputs.size(0))
 
+            # measure elapsed time
+            batch_time.update(time.time() - end)
+            end = time.time()
+
             # plot progress
-            t.set_postfix(
-                loss='{:.3f}'.format(losses.avg.cpu().numpy()),
-                top1='{:.3f}'.format(top1.avg.cpu().numpy()),
-                top5='{:.3f}'.format(top5.avg.cpu().numpy()),
+            bar.suffix = '({batch}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | Loss: {loss:.4f} | top1: {top1: .4f} | top5: {top5: .4f}'.format(
+                batch=batch_idx + 1,
+                size=len(self.dataloaders['test']),
+                data=data_time.avg,
+                bt=batch_time.avg,
+                total=bar.elapsed_td,
+                eta=bar.eta_td,
+                loss=losses.avg,
+                top1=top1.avg,
+                top5=top5.avg,
             )
-            t.update()
-        t.close()
+            bar.next()
+        bar.finish()
         return (losses.avg, top1.avg)
 
     @ex.capture
@@ -386,12 +397,9 @@ class TrainingHarness(object):
             shutil.copyfile(filepath, osp.join(
                 checkpoint_dir, 'model_best.pth.tar'))
 
-        link_dir = osp.join(exp_dir, 'checkpoint')
-        os.link(checkpoint_dir, link_dir)
-        ex.add_artifact(link_dir)
     @ex.capture
     def _adjust_learning_rate(self, epoch, scheduler_args):
-        if epoch in scheduler_args['schedule']:
+        if epoch in schedule_args['schedule']:
             self.state['lr'] *= scheduler_args['gamma']
             for param_group in self.optimizer.param_groups:
                 param_group['lr'] = self.state['lr']

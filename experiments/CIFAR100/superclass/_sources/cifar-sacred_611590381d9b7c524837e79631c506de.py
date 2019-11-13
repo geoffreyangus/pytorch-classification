@@ -9,6 +9,7 @@ import os
 import os.path as osp
 from uuid import uuid4
 import shutil
+import time
 import random
 
 import torch
@@ -20,11 +21,10 @@ import torch.utils.data as data
 from torch.utils.data import DataLoader
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
-from tqdm import tqdm
 
 from dataset import CIFAR100, collate_train
 import models.cifar as models
-from utils import Logger, AverageMeter, accuracy, mkdir_p, savefig
+from utils import Bar, Logger, AverageMeter, accuracy, mkdir_p, savefig
 
 from sacred import Experiment
 from sacred.observers import FileStorageObserver
@@ -46,7 +46,6 @@ def config():
 
     # meta
     data_dir = '/Users/geoffreyangus/data'       # on DAWN: '/lfs/1/gangus/data'
-    data_dir = '/lfs/1/gangus/data'
 
     cuda = torch.cuda.is_available()
     device = 0 if cuda else 'cpu'
@@ -107,12 +106,12 @@ def config():
     # dataloader args per split
     dataloader_configs = {
         'train': {
-            'batch_size': 128,
+            'batch_size': 4,
             'shuffle': True,
             'num_workers': 4
         },
         'test': {
-            'batch_size': 100,
+            'batch_size': 4,
             'shuffle': False,
             'num_workers': 4
         }
@@ -256,22 +255,22 @@ class TrainingHarness(object):
             test_loss, test_acc = self.test(epoch, device)
 
             # append logger file
-            logger.append([self.state['lr'], train_loss,
+            logger.append([state['lr'], train_loss,
                            test_loss, train_acc, test_acc])
 
             # save model
             is_best = test_acc > self.best_acc
             self.best_acc = max(test_acc, self.best_acc)
 
-            self._save_checkpoint({
+            self.save_checkpoint({
                 'epoch': epoch + 1,
-                'state_dict': self.model.state_dict(),
+                'state_dict': model.state_dict(),
                 'acc': test_acc,
                 'best_acc': self.best_acc,
-                'optimizer': self.optimizer.state_dict(),
-            }, is_best)
+                'optimizer': optimizer.state_dict(),
+            }, is_best, checkpoint=checkpoint_dir)
 
-            self._adjust_learning_rate(epoch)
+            self.adjust_learning_rate(epoch)
 
         logger.close()
         logger.plot()
@@ -293,12 +292,19 @@ class TrainingHarness(object):
         # switch to train mode
         self.model.train()
 
+        batch_time = AverageMeter()
+        data_time = AverageMeter()
         losses = AverageMeter()
         top1 = AverageMeter()
         top5 = AverageMeter()
+        end = time.time()
 
-        t = tqdm(total=len(self.dataloaders['train']))
+        bar = Bar('Processing', max=len(self.dataloaders['train']))
         for batch_idx, (inputs, targets) in enumerate(self.dataloaders['train']):
+            print('hello we are here')
+            # measure data loading time
+            data_time.update(time.time() - end)
+
             if device != 'cpu':
                 inputs = inputs.cuda(device)
                 targets = targets.cuda(device)
@@ -326,14 +332,24 @@ class TrainingHarness(object):
             loss.backward()
             self.optimizer.step()
 
+            # measure elapsed time
+            batch_time.update(time.time() - end)
+            end = time.time()
+
             # plot progress
-            t.set_postfix(
-                loss='{:.3f}'.format(losses.avg.cpu().numpy()),
-                top1='{:.3f}'.format(top1.avg.cpu().numpy()),
-                top5='{:.3f}'.format(top5.avg.cpu().numpy()),
+            bar.suffix = '({batch}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | Loss: {loss:.4f} | top1: {top1: .4f} | top5: {top5: .4f}'.format(
+                batch=batch_idx + 1,
+                size=len(self.dataloaders['train']),
+                data=data_time.avg,
+                bt=batch_time.avg,
+                total=bar.elapsed_td,
+                eta=bar.eta_td,
+                loss=losses.avg,
+                top1=top1.avg,
+                top5=top5.avg,
             )
-            t.update()
-        t.close()
+            bar.next()
+        bar.finish()
         return (losses.avg, top1.avg)
 
     @ex.capture
@@ -341,12 +357,18 @@ class TrainingHarness(object):
         # switch to evaluate mode
         self.model.eval()
 
+        batch_time = AverageMeter()
+        data_time = AverageMeter()
         losses = AverageMeter()
         top1 = AverageMeter()
         top5 = AverageMeter()
 
-        t = tqdm(total=len(self.dataloaders['test']))
+        end = time.time()
+        bar = Bar('Processing', max=len(self.dataloaders['test']))
         for batch_idx, (inputs, targets) in enumerate(self.dataloaders['test']):
+            # measure data loading time
+            data_time.update(time.time() - end)
+
             if device != 'cpu':
                 inputs, targets = inputs.cuda(device), targets.cuda(device)
 
@@ -368,14 +390,24 @@ class TrainingHarness(object):
                 top1.update(prec1, inputs.size(0))
                 top5.update(prec5, inputs.size(0))
 
+            # measure elapsed time
+            batch_time.update(time.time() - end)
+            end = time.time()
+
             # plot progress
-            t.set_postfix(
-                loss='{:.3f}'.format(losses.avg.cpu().numpy()),
-                top1='{:.3f}'.format(top1.avg.cpu().numpy()),
-                top5='{:.3f}'.format(top5.avg.cpu().numpy()),
+            bar.suffix = '({batch}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | Loss: {loss:.4f} | top1: {top1: .4f} | top5: {top5: .4f}'.format(
+                batch=batch_idx + 1,
+                size=len(self.dataloaders['test']),
+                data=data_time.avg,
+                bt=batch_time.avg,
+                total=bar.elapsed_td,
+                eta=bar.eta_td,
+                loss=losses.avg,
+                top1=top1.avg,
+                top5=top5.avg,
             )
-            t.update()
-        t.close()
+            bar.next()
+        bar.finish()
         return (losses.avg, top1.avg)
 
     @ex.capture
@@ -386,12 +418,9 @@ class TrainingHarness(object):
             shutil.copyfile(filepath, osp.join(
                 checkpoint_dir, 'model_best.pth.tar'))
 
-        link_dir = osp.join(exp_dir, 'checkpoint')
-        os.link(checkpoint_dir, link_dir)
-        ex.add_artifact(link_dir)
     @ex.capture
     def _adjust_learning_rate(self, epoch, scheduler_args):
-        if epoch in scheduler_args['schedule']:
+        if epoch in schedule_args['schedule']:
             self.state['lr'] *= scheduler_args['gamma']
             for param_group in self.optimizer.param_groups:
                 param_group['lr'] = self.state['lr']

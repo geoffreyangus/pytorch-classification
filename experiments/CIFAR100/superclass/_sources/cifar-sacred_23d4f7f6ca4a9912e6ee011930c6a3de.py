@@ -46,7 +46,6 @@ def config():
 
     # meta
     data_dir = '/Users/geoffreyangus/data'       # on DAWN: '/lfs/1/gangus/data'
-    data_dir = '/lfs/1/gangus/data'
 
     cuda = torch.cuda.is_available()
     device = 0 if cuda else 'cpu'
@@ -107,12 +106,12 @@ def config():
     # dataloader args per split
     dataloader_configs = {
         'train': {
-            'batch_size': 128,
+            'batch_size': 4,
             'shuffle': True,
             'num_workers': 4
         },
         'test': {
-            'batch_size': 100,
+            'batch_size': 4,
             'shuffle': False,
             'num_workers': 4
         }
@@ -256,22 +255,22 @@ class TrainingHarness(object):
             test_loss, test_acc = self.test(epoch, device)
 
             # append logger file
-            logger.append([self.state['lr'], train_loss,
+            logger.append([state['lr'], train_loss,
                            test_loss, train_acc, test_acc])
 
             # save model
             is_best = test_acc > self.best_acc
             self.best_acc = max(test_acc, self.best_acc)
 
-            self._save_checkpoint({
+            self.save_checkpoint({
                 'epoch': epoch + 1,
-                'state_dict': self.model.state_dict(),
+                'state_dict': model.state_dict(),
                 'acc': test_acc,
                 'best_acc': self.best_acc,
-                'optimizer': self.optimizer.state_dict(),
-            }, is_best)
+                'optimizer': optimizer.state_dict(),
+            }, is_best, checkpoint=checkpoint_dir)
 
-            self._adjust_learning_rate(epoch)
+            self.adjust_learning_rate(epoch)
 
         logger.close()
         logger.plot()
@@ -328,9 +327,9 @@ class TrainingHarness(object):
 
             # plot progress
             t.set_postfix(
-                loss='{:.3f}'.format(losses.avg.cpu().numpy()),
-                top1='{:.3f}'.format(top1.avg.cpu().numpy()),
-                top5='{:.3f}'.format(top5.avg.cpu().numpy()),
+                loss='{:.3f}'.format(losses.avg.numpy()),
+                top1='{:.3f}'.format(top1.avg.numpy()),
+                top5='{:.3f}'.format(top5.avg.numpy()),
             )
             t.update()
         t.close()
@@ -370,9 +369,9 @@ class TrainingHarness(object):
 
             # plot progress
             t.set_postfix(
-                loss='{:.3f}'.format(losses.avg.cpu().numpy()),
-                top1='{:.3f}'.format(top1.avg.cpu().numpy()),
-                top5='{:.3f}'.format(top5.avg.cpu().numpy()),
+                loss='{:.3f}'.format(losses.avg.numpy()),
+                top1='{:.3f}'.format(top1.avg.numpy()),
+                top5='{:.3f}'.format(top5.avg.numpy()),
             )
             t.update()
         t.close()
@@ -386,12 +385,9 @@ class TrainingHarness(object):
             shutil.copyfile(filepath, osp.join(
                 checkpoint_dir, 'model_best.pth.tar'))
 
-        link_dir = osp.join(exp_dir, 'checkpoint')
-        os.link(checkpoint_dir, link_dir)
-        ex.add_artifact(link_dir)
     @ex.capture
     def _adjust_learning_rate(self, epoch, scheduler_args):
-        if epoch in scheduler_args['schedule']:
+        if epoch in schedule_args['schedule']:
             self.state['lr'] *= scheduler_args['gamma']
             for param_group in self.optimizer.param_groups:
                 param_group['lr'] = self.state['lr']
