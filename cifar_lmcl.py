@@ -256,9 +256,9 @@ class TrainingHarness(object):
     def _init_scheduler(self, scheduler_class, scheduler_args):
         scheduler_dict = {}
         scheduler_dict['nn'] = getattr(schedulers, scheduler_class)(
-            self.optimizer['nn'], last_epoch=self.start_epoch, **scheduler_args)
+            self.optimizer['nn'], last_epoch=self.start_epoch - 1, **scheduler_args)
         scheduler_dict['centers'] = schedulers.StepLR(
-            self.optimizer['centers'], last_epoch=self.start_epoch, step_size=20, gamma=0.5)
+            self.optimizer['centers'], last_epoch=self.start_epoch - 1, step_size=20, gamma=0.5)
         return scheduler_dict
 
     @ex.capture
@@ -339,6 +339,8 @@ class TrainingHarness(object):
 
         t = tqdm(total=len(self.dataloaders['train']))
         for batch_idx, (inputs, targets) in enumerate(self.dataloaders['train']):
+            if batch_idx == 5:
+                break
             if device != 'cpu':
                 inputs = inputs.cuda(device)
                 targets = targets.cuda(device)
@@ -391,11 +393,13 @@ class TrainingHarness(object):
 
         t = tqdm(total=len(self.dataloaders['test']))
         for batch_idx, (inputs, targets) in enumerate(self.dataloaders['test']):
+            if batch_idx == 5:
+                break
             if device != 'cpu':
                 inputs, targets = inputs.cuda(device), targets.cuda(device)
 
             inputs, targets = torch.autograd.Variable(
-                inputs, volatile=True), torch.autograd.Variable(targets)
+                inputs), torch.autograd.Variable(targets)
 
             # compute output
             emb, out = self.model(inputs)
@@ -424,16 +428,16 @@ class TrainingHarness(object):
         return (losses.avg, top1.avg)
 
     @ex.capture
-    def _save_checkpoint(self, state, is_best, checkpoint_dir, filename='checkpoint.pth.tar'):
+    def _save_checkpoint(self, state, is_best, checkpoint_dir, exp_dir, filename='checkpoint.pth.tar'):
         filepath = osp.join(checkpoint_dir, filename)
         torch.save(state, filepath)
         if is_best:
             shutil.copyfile(filepath, osp.join(
                 checkpoint_dir, 'model_best.pth.tar'))
 
-        link_dir = osp.join(exp_dir, 'checkpoint')
-        os.link(checkpoint_dir, link_dir)
-        ex.add_artifact(link_dir)
+        # link_dir = osp.join(exp_dir, 'checkpoint')
+        # os.link(checkpoint_dir, link_dir)
+        # ex.add_artifact(link_dir)
 
 
 @ex.config_hook
