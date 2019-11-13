@@ -284,7 +284,7 @@ class TrainingHarness(object):
             test_loss, test_acc = self.test(epoch, device)
 
             # append logger file
-            logger.append([train_loss, test_loss, train_acc, test_acc])
+            logger.append([learning_rate, train_loss, test_loss, train_acc, test_acc])
 
             # save model
             is_best = test_acc > self.best_acc
