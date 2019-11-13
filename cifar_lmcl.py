@@ -303,7 +303,7 @@ class TrainingHarness(object):
 
         logger.close()
         logger.plot()
-        savefig(osp.join(self.checkpoint_dir, 'log.eps'))
+        savefig(osp.join(checkpoint_dir, 'log.eps'))
 
         return {
             'train': {
