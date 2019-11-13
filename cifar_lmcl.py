@@ -339,8 +339,6 @@ class TrainingHarness(object):
 
         t = tqdm(total=len(self.dataloaders['train']))
         for batch_idx, (inputs, targets) in enumerate(self.dataloaders['train']):
-            if batch_idx == 5:
-                break
             if device != 'cpu':
                 inputs = inputs.cuda(device)
                 targets = targets.cuda(device)
@@ -393,8 +391,6 @@ class TrainingHarness(object):
 
         t = tqdm(total=len(self.dataloaders['test']))
         for batch_idx, (inputs, targets) in enumerate(self.dataloaders['test']):
-            if batch_idx == 5:
-                break
             if device != 'cpu':
                 inputs, targets = inputs.cuda(device), targets.cuda(device)
 
