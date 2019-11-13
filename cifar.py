@@ -261,9 +261,6 @@ class TrainingHarness(object):
 
         # begin training
         for epoch in range(start_epoch, num_epochs):
-            if self.scheduler is not None:
-                self.scheduler.step()
-
             learning_rate = self.scheduler.get_lr()[0]
             _log.info('\nEpoch: [%d | %d] LR: %f' %
                       (epoch + 1, num_epochs, learning_rate))
@@ -285,6 +282,9 @@ class TrainingHarness(object):
                 'best_acc': self.best_acc,
                 'optimizer': self.optimizer.state_dict(),
             }, is_best)
+
+            if self.scheduler is not None:
+                self.scheduler.step()
 
         logger.close()
         logger.plot()
