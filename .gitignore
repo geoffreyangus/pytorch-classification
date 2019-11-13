@@ -91,6 +91,7 @@ celerybeat-schedule
 # virtualenv
 venv/
 ENV/
+.env-pytorch-classification
 
 # Spyder project settings
 .spyderproject
@@ -98,5 +99,5 @@ ENV/
 # Rope project settings
 .ropeproject
 
-experiments
+# experiments
 checkpoints
