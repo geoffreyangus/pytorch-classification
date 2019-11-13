@@ -374,7 +374,7 @@ class TrainingHarness(object):
                 inputs, targets = inputs.cuda(device), targets.cuda(device)
 
             inputs, targets = torch.autograd.Variable(
-                inputs, volatile=True), torch.autograd.Variable(targets)
+                inputs), torch.autograd.Variable(targets)
 
             # compute output
             outputs = self.model(inputs)
@@ -402,16 +402,16 @@ class TrainingHarness(object):
         return (losses.avg, top1.avg)
 
     @ex.capture
-    def _save_checkpoint(self, state, is_best, checkpoint_dir, filename='checkpoint.pth.tar'):
+    def _save_checkpoint(self, state, is_best, checkpoint_dir, exp_dir, filename='checkpoint.pth.tar'):
         filepath = osp.join(checkpoint_dir, filename)
         torch.save(state, filepath)
         if is_best:
             shutil.copyfile(filepath, osp.join(
                 checkpoint_dir, 'model_best.pth.tar'))
 
-        link_dir = osp.join(exp_dir, 'checkpoint')
-        os.link(checkpoint_dir, link_dir)
-        ex.add_artifact(link_dir)
+        # link_dir = osp.join(exp_dir, 'checkpoint')
+        # os.link(checkpoint_dir, link_dir)
+        # ex.add_artifact(link_dir)
 
 
 @ex.config_hook
