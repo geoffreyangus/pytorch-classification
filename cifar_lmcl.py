@@ -152,10 +152,9 @@ def config():
     }
 
     # scheduler config
-    scheduler_class = None
+    scheduler_class = 'MultiStepLR'
     scheduler_args = {
-        # epoch numbers to decrease learning rate
-        'schedule': [150, 225],
+        'milestones': [150, 225],               # epoch numbers to decrease learning rate
         'gamma': 0.1                            # learning rate multiplied by gamma on schedule
     }
 
@@ -234,14 +233,14 @@ class TrainingHarness(object):
     @ex.capture
     def _init_optimizer(self, optimizer_class, optimizer_args):
         optimizer_dict = {}
-        optimizer_dict['nn'] = optimizers.SGD(self.model.parameters(), **optimizer_args)
+        optimizer_dict['nn'] = getattr(optimizers, optimizer_class)(self.model.parameters(), **optimizer_args)
         optimizer_dict['centers'] = optimizers.SGD(self.criterion['lmcl_loss'].parameters(), lr=0.01)
         return optimizer_dict
 
     @ex.capture
     def _init_scheduler(self, scheduler_class, scheduler_args):
         scheduler_dict = {}
-        scheduler_dict['nn'] = schedulers.StepLR(self.optimizer['nn'], 150, gamma=0.1)
+        scheduler_dict['nn'] = getattr(schedulers, scheduler_class)(self.optimizer['nn'], **scheduler_args)
         scheduler_dict['centers'] = schedulers.StepLR(self.optimizer['centers'], 20, gamma=0.5)
         return scheduler_dict
 
