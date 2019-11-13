@@ -48,7 +48,7 @@ def config():
 
     # meta
     data_dir = '/Users/geoffreyangus/data'       # on DAWN: '/lfs/1/gangus/data'
-    # data_dir = '/lfs/1/gangus/data'
+    data_dir = '/lfs/1/gangus/data'
 
     cuda = torch.cuda.is_available()
     device = 0 if cuda else 'cpu'
@@ -109,12 +109,12 @@ def config():
     # dataloader args per split
     dataloader_configs = {
         'train': {
-            'batch_size': 1,
+            'batch_size': 128,
             'shuffle': True,
             'num_workers': 4
         },
         'test': {
-            'batch_size': 1,
+            'batch_size': 100,
             'shuffle': False,
             'num_workers': 4
         }
@@ -388,7 +388,7 @@ class TrainingHarness(object):
 
             # compute output
             emb, out = self.model(inputs)
-            outputs, mlogits = self.criterion['lmcl'](emb, targets)
+            outputs, mlogits = self.criterion['lmcl_loss'](emb, targets)
             loss = self.criterion['nll_loss'](mlogits, targets)
 
             # measure accuracy and record loss
