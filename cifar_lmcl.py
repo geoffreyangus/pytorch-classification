@@ -43,12 +43,12 @@ def config():
     cifar_type = 'CIFAR100'
     assert cifar_type in {'CIFAR10', 'CIFAR100'}, f'cifar_type {cifar_type}'
 
-    hypothesis_conditions = [cifar_type, 'superclass']
+    hypothesis_conditions = [cifar_type, 'superclass', 'lmcl']
     exp_dir = osp.join('experiments', *hypothesis_conditions)
 
     # meta
     data_dir = '/Users/geoffreyangus/data'       # on DAWN: '/lfs/1/gangus/data'
-    data_dir = '/lfs/1/gangus/data'
+    # data_dir = '/lfs/1/gangus/data'
 
     cuda = torch.cuda.is_available()
     device = 0 if cuda else 'cpu'
@@ -125,7 +125,7 @@ def config():
         num_classes = 10
     elif cifar_type == 'CIFAR100':
         num_classes = 20 if superclass else 100
-    model_name = 'densenet'
+    model_name = 'densenet_2dim_fc'
     model_args = {
         'num_classes': num_classes,
         'depth': 100,
@@ -139,8 +139,8 @@ def config():
     criterion_class = 'LMCL_loss'
     criterion_args = {
         'num_classes': num_classes,
-        's': 7.00,
-        'm': 0.2
+        's': 64.00,
+        'm': 0.35
     }
 
     # optimizer config
@@ -227,7 +227,7 @@ class TrainingHarness(object):
             'this file is for LMCL loss only due to training schematic'
         criterion_dict = {}
         criterion_dict['nll_loss'] = losses.CrossEntropyLoss()
-        criterion_dict['lmcl_loss'] = getattr(losses, criterion_class)(feat_dim=self.model.module.inplanes, **criterion_args)
+        criterion_dict['lmcl_loss'] = getattr(losses, criterion_class)(feat_dim=2, **criterion_args)
         if device != 'cpu':
             criterion_dict['lmcl_loss'] = criterion_dict['lmcl_loss'].cuda(device)
         return criterion_dict
@@ -258,7 +258,7 @@ class TrainingHarness(object):
         scheduler_dict['nn'] = getattr(schedulers, scheduler_class)(
             self.optimizer['nn'], last_epoch=self.start_epoch - 1, **scheduler_args)
         scheduler_dict['centers'] = schedulers.StepLR(
-            self.optimizer['centers'], last_epoch=self.start_epoch - 1, step_size=20, gamma=0.5)
+            self.optimizer['centers'], last_epoch=self.start_epoch - 1, step_size=125, gamma=0.5)
         return scheduler_dict
 
     @ex.capture
@@ -304,6 +304,7 @@ class TrainingHarness(object):
             self._save_checkpoint({
                 'epoch': epoch + 1,
                 'state_dict': self.model.state_dict(),
+                'criterion_state_dict': self.criterion['lmcl_loss'].state_dict(),
                 'acc': test_acc,
                 'best_acc': self.best_acc,
                 'optimizer_nn': self.optimizer['nn'].state_dict(),
