@@ -326,8 +326,8 @@ class TrainingHarness(object):
                 inputs = inputs.cuda(device)
                 targets = targets.cuda(device)
 
-            inputs, targets = torch.autograd.Variable(
-                inputs), torch.autograd.Variable(targets)
+            inputs = torch.autograd.Variable(inputs)
+            targets = torch.autograd.Variable(targets)
 
             # compute output
             outputs = self.model(inputs)
@@ -373,8 +373,8 @@ class TrainingHarness(object):
             if device != 'cpu':
                 inputs, targets = inputs.cuda(device), targets.cuda(device)
 
-            inputs, targets = torch.autograd.Variable(
-                inputs), torch.autograd.Variable(targets)
+            inputs = torch.autograd.Variable(inputs)
+            targets = torch.autograd.Variable(targets)
 
             # compute output
             outputs = self.model(inputs)
