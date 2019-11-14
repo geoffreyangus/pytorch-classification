@@ -14,52 +14,52 @@
     "name": "training",
     "repositories": [
       {
-        "commit": "955464356dcf5f64926be82aa6ed97062bd8dfb8",
+        "commit": "3a6284ad3d442d18ac4b12218136f046e66ed573",
         "dirty": true,
         "url": "https://github.com/geoffreyangus/pytorch-classification.git"
       },
       {
-        "commit": "955464356dcf5f64926be82aa6ed97062bd8dfb8",
+        "commit": "3a6284ad3d442d18ac4b12218136f046e66ed573",
         "dirty": true,
         "url": "https://github.com/geoffreyangus/pytorch-classification.git"
       },
       {
-        "commit": "955464356dcf5f64926be82aa6ed97062bd8dfb8",
+        "commit": "3a6284ad3d442d18ac4b12218136f046e66ed573",
         "dirty": true,
         "url": "https://github.com/geoffreyangus/pytorch-classification.git"
       },
       {
-        "commit": "955464356dcf5f64926be82aa6ed97062bd8dfb8",
+        "commit": "3a6284ad3d442d18ac4b12218136f046e66ed573",
         "dirty": true,
         "url": "https://github.com/geoffreyangus/pytorch-classification.git"
       },
       {
-        "commit": "955464356dcf5f64926be82aa6ed97062bd8dfb8",
+        "commit": "3a6284ad3d442d18ac4b12218136f046e66ed573",
         "dirty": true,
         "url": "https://github.com/geoffreyangus/pytorch-classification.git"
       },
       {
-        "commit": "955464356dcf5f64926be82aa6ed97062bd8dfb8",
+        "commit": "3a6284ad3d442d18ac4b12218136f046e66ed573",
         "dirty": true,
         "url": "https://github.com/geoffreyangus/pytorch-classification.git"
       },
       {
-        "commit": "955464356dcf5f64926be82aa6ed97062bd8dfb8",
+        "commit": "3a6284ad3d442d18ac4b12218136f046e66ed573",
         "dirty": true,
         "url": "https://github.com/geoffreyangus/pytorch-classification.git"
       },
       {
-        "commit": "955464356dcf5f64926be82aa6ed97062bd8dfb8",
+        "commit": "3a6284ad3d442d18ac4b12218136f046e66ed573",
         "dirty": true,
         "url": "https://github.com/geoffreyangus/pytorch-classification.git"
       },
       {
-        "commit": "955464356dcf5f64926be82aa6ed97062bd8dfb8",
+        "commit": "3a6284ad3d442d18ac4b12218136f046e66ed573",
         "dirty": true,
         "url": "https://github.com/geoffreyangus/pytorch-classification.git"
       },
       {
-        "commit": "955464356dcf5f64926be82aa6ed97062bd8dfb8",
+        "commit": "3a6284ad3d442d18ac4b12218136f046e66ed573",
         "dirty": true,
         "url": "https://github.com/geoffreyangus/pytorch-classification.git"
       }
@@ -67,11 +67,11 @@
     "sources": [
       [
         "cifar_lmcl.py",
-        "_sources/cifar_lmcl_b1287ccf01310d369c27b28ec079609a.py"
+        "_sources/cifar_lmcl_7cc4c9fee406e8e8a05930fd818d0867.py"
       ],
       [
         "dataset.py",
-        "_sources/dataset_ff1b5a19d5455575f822a006f249bca9.py"
+        "_sources/dataset_826060162978d0adec944db4d7a6e7d8.py"
       ],
       [
         "losses/__init__.py",
@@ -87,7 +87,7 @@
       ],
       [
         "models/cifar/__init__.py",
-        "_sources/__init___f390946d87e37d3662a892575eb4ebc9.py"
+        "_sources/__init___d538155a2ad65ba76e95fa21e4c49eae.py"
       ],
       [
         "utils/__init__.py",
@@ -99,7 +99,7 @@
       ],
       [
         "utils/logger.py",
-        "_sources/logger_0ec8826f1d1bd8c2f98b0063a061005a.py"
+        "_sources/logger_01005948c567e234f5131dd1067da128.py"
       ],
       [
         "utils/misc.py",
@@ -107,7 +107,28 @@
       ]
     ]
   },
-  "heartbeat": "2019-11-14T00:33:56.800850",
+  "fail_trace": [
+    "Traceback (most recent call last):\n",
+    "  File \"/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/sacred/config/captured_function.py\", line 42, in captured_function\n    result = wrapped(*args, **kwargs)\n",
+    "  File \"cifar_lmcl.py\", line 450, in main\n    return harness.run()\n",
+    "  File \"/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/sacred/config/captured_function.py\", line 42, in captured_function\n    result = wrapped(*args, **kwargs)\n",
+    "  File \"cifar_lmcl.py\", line 295, in run\n    test_loss, test_acc = self.test(epoch, device)\n",
+    "  File \"/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/sacred/config/captured_function.py\", line 42, in captured_function\n    result = wrapped(*args, **kwargs)\n",
+    "  File \"cifar_lmcl.py\", line 402, in test\n    emb, out = self.model(inputs)\n",
+    "  File \"/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/torch/nn/modules/module.py\", line 541, in __call__\n    result = self.forward(*input, **kwargs)\n",
+    "  File \"/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/torch/nn/parallel/data_parallel.py\", line 150, in forward\n    return self.module(*inputs[0], **kwargs[0])\n",
+    "  File \"/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/torch/nn/modules/module.py\", line 541, in __call__\n    result = self.forward(*input, **kwargs)\n",
+    "  File \"/lfs/1/gangus/repositories/pytorch-classification/models/cifar/densenet_2dim_fc.py\", line 136, in forward\n    x = self.trans2(self.dense2(x))\n",
+    "  File \"/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/torch/nn/modules/module.py\", line 541, in __call__\n    result = self.forward(*input, **kwargs)\n",
+    "  File \"/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/torch/nn/modules/container.py\", line 92, in forward\n    input = module(input)\n",
+    "  File \"/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/torch/nn/modules/module.py\", line 541, in __call__\n    result = self.forward(*input, **kwargs)\n",
+    "  File \"/lfs/1/gangus/repositories/pytorch-classification/models/cifar/densenet_2dim_fc.py\", line 26, in forward\n    out = self.bn1(x)\n",
+    "  File \"/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/torch/nn/modules/module.py\", line 541, in __call__\n    result = self.forward(*input, **kwargs)\n",
+    "  File \"/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/torch/nn/modules/batchnorm.py\", line 81, in forward\n    exponential_average_factor, self.eps)\n",
+    "  File \"/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/torch/nn/functional.py\", line 1670, in batch_norm\n    training, momentum, eps, torch.backends.cudnn.enabled\n",
+    "RuntimeError: CUDA out of memory. Tried to allocate 22.00 MiB (GPU 0; 15.90 GiB total capacity; 5.83 GiB already allocated; 19.88 MiB free; 188.41 MiB cached)\n"
+  ],
+  "heartbeat": "2019-11-14T03:47:48.467636",
   "host": {
     "ENV": {},
     "cpu": "Intel(R) Xeon(R) CPU E5-2690 v4 @ 2.60GHz",
@@ -157,229 +178,8 @@
     }
   },
   "resources": [],
-  "result": {
-    "test": {
-      "acc": {
-        "py/reduce": [
-          {
-            "py/function": "torch._utils._rebuild_tensor_v2"
-          },
-          {
-            "py/tuple": [
-              {
-                "py/reduce": [
-                  {
-                    "py/function": "torch.storage._load_from_bytes"
-                  },
-                  {
-                    "py/tuple": [
-                      {
-                        "py/b64": "gAKKCmz8nEb5IGqoUBkugAJN6QMugAJ9cQAoWBAAAABwcm90b2NvbF92ZXJzaW9ucQFN6QNYDQAA\nAGxpdHRsZV9lbmRpYW5xAohYCgAAAHR5cGVfc2l6ZXNxA31xBChYBQAAAHNob3J0cQVLAlgDAAAA\naW50cQZLBFgEAAAAbG9uZ3EHSwR1dS6AAihYBwAAAHN0b3JhZ2VxAGN0b3JjaApGbG9hdFN0b3Jh\nZ2UKcQFYCgAAADE4MDcyMzE4NTZxAlgGAAAAY3VkYTowcQNLAU50cQRRLoACXXEAWAoAAAAxODA3\nMjMxODU2cQFhLgEAAAAAAAAAAAAAAA==\n"
-                      }
-                    ]
-                  },
-                  null,
-                  null,
-                  null
-                ]
-              },
-              0,
-              {
-                "py/tuple": []
-              },
-              {
-                "py/tuple": []
-              },
-              false,
-              {
-                "py/reduce": [
-                  {
-                    "py/type": "collections.OrderedDict"
-                  },
-                  {
-                    "py/tuple": []
-                  },
-                  null,
-                  null,
-                  {
-                    "py/tuple": []
-                  }
-                ]
-              }
-            ]
-          },
-          null,
-          null,
-          null
-        ]
-      },
-      "loss": {
-        "py/reduce": [
-          {
-            "py/function": "torch._utils._rebuild_tensor_v2"
-          },
-          {
-            "py/tuple": [
-              {
-                "py/reduce": [
-                  {
-                    "py/function": "torch.storage._load_from_bytes"
-                  },
-                  {
-                    "py/tuple": [
-                      {
-                        "py/b64": "gAKKCmz8nEb5IGqoUBkugAJN6QMugAJ9cQAoWBAAAABwcm90b2NvbF92ZXJzaW9ucQFN6QNYDQAA\nAGxpdHRsZV9lbmRpYW5xAohYCgAAAHR5cGVfc2l6ZXNxA31xBChYBQAAAHNob3J0cQVLAlgDAAAA\naW50cQZLBFgEAAAAbG9uZ3EHSwR1dS6AAihYBwAAAHN0b3JhZ2VxAGN0b3JjaApGbG9hdFN0b3Jh\nZ2UKcQFYCgAAADE4MDY2ODY3NjhxAlgGAAAAY3VkYTowcQNLAU50cQRRLoACXXEAWAoAAAAxODA2\nNjg2NzY4cQFhLgEAAAAAAAAA////fw==\n"
-                      }
-                    ]
-                  },
-                  null,
-                  null,
-                  null
-                ]
-              },
-              0,
-              {
-                "py/tuple": []
-              },
-              {
-                "py/tuple": []
-              },
-              false,
-              {
-                "py/reduce": [
-                  {
-                    "py/type": "collections.OrderedDict"
-                  },
-                  {
-                    "py/tuple": []
-                  },
-                  null,
-                  null,
-                  {
-                    "py/tuple": []
-                  }
-                ]
-              }
-            ]
-          },
-          null,
-          null,
-          null
-        ]
-      }
-    },
-    "train": {
-      "acc": {
-        "py/reduce": [
-          {
-            "py/function": "torch._utils._rebuild_tensor_v2"
-          },
-          {
-            "py/tuple": [
-              {
-                "py/reduce": [
-                  {
-                    "py/function": "torch.storage._load_from_bytes"
-                  },
-                  {
-                    "py/tuple": [
-                      {
-                        "py/b64": "gAKKCmz8nEb5IGqoUBkugAJN6QMugAJ9cQAoWBAAAABwcm90b2NvbF92ZXJzaW9ucQFN6QNYDQAA\nAGxpdHRsZV9lbmRpYW5xAohYCgAAAHR5cGVfc2l6ZXNxA31xBChYBQAAAHNob3J0cQVLAlgDAAAA\naW50cQZLBFgEAAAAbG9uZ3EHSwR1dS6AAihYBwAAAHN0b3JhZ2VxAGN0b3JjaApGbG9hdFN0b3Jh\nZ2UKcQFYCAAAADcxMTQwMTI4cQJYBgAAAGN1ZGE6MHEDSwFOdHEEUS6AAl1xAFgIAAAANzExNDAx\nMjhxAWEuAQAAAAAAAABuEgM7\n"
-                      }
-                    ]
-                  },
-                  null,
-                  null,
-                  null
-                ]
-              },
-              0,
-              {
-                "py/tuple": []
-              },
-              {
-                "py/tuple": []
-              },
-              false,
-              {
-                "py/reduce": [
-                  {
-                    "py/type": "collections.OrderedDict"
-                  },
-                  {
-                    "py/tuple": []
-                  },
-                  null,
-                  null,
-                  {
-                    "py/tuple": []
-                  }
-                ]
-              }
-            ]
-          },
-          null,
-          null,
-          null
-        ]
-      },
-      "loss": {
-        "py/reduce": [
-          {
-            "py/function": "torch._utils._rebuild_tensor_v2"
-          },
-          {
-            "py/tuple": [
-              {
-                "py/reduce": [
-                  {
-                    "py/function": "torch.storage._load_from_bytes"
-                  },
-                  {
-                    "py/tuple": [
-                      {
-                        "py/b64": "gAKKCmz8nEb5IGqoUBkugAJN6QMugAJ9cQAoWBAAAABwcm90b2NvbF92ZXJzaW9ucQFN6QNYDQAA\nAGxpdHRsZV9lbmRpYW5xAohYCgAAAHR5cGVfc2l6ZXNxA31xBChYBQAAAHNob3J0cQVLAlgDAAAA\naW50cQZLBFgEAAAAbG9uZ3EHSwR1dS6AAihYBwAAAHN0b3JhZ2VxAGN0b3JjaApGbG9hdFN0b3Jh\nZ2UKcQFYCgAAADE4MDc1NDQyNTZxAlgGAAAAY3VkYTowcQNLAU50cQRRLoACXXEAWAoAAAAxODA3\nNTQ0MjU2cQFhLgEAAAAAAAAA////fw==\n"
-                      }
-                    ]
-                  },
-                  null,
-                  null,
-                  null
-                ]
-              },
-              0,
-              {
-                "py/tuple": []
-              },
-              {
-                "py/tuple": []
-              },
-              false,
-              {
-                "py/reduce": [
-                  {
-                    "py/type": "collections.OrderedDict"
-                  },
-                  {
-                    "py/tuple": []
-                  },
-                  null,
-                  null,
-                  {
-                    "py/tuple": []
-                  }
-                ]
-              }
-            ]
-          },
-          null,
-          null,
-          null
-        ]
-      }
-    }
-  },
-  "start_time": "2019-11-13T17:59:18.709427",
-  "status": "COMPLETED",
-  "stop_time": "2019-11-14T00:33:56.761549"
+  "result": null,
+  "start_time": "2019-11-14T03:45:26.450475",
+  "status": "FAILED",
+  "stop_time": "2019-11-14T03:47:48.472318"
 }

@@ -1,6 +1,6 @@
 {
   "__doc__": "\nConfig for training harness.\n",
-  "checkpoint_dir": "checkpoints/eff04a8c-75d6-44a6-9d64-65d9986c312e",
+  "checkpoint_dir": "checkpoints/4c201684-7abf-410f-896e-ad557b77dfc4",
   "cifar_type": "CIFAR100",
   "criterion_args": {},
   "criterion_class": "CrossEntropyLoss",
@@ -134,7 +134,7 @@
     ]
   },
   "scheduler_class": "MultiStepLR",
-  "seed": 297052077,
+  "seed": 83416190,
   "superclass": true,
   "superclass_config": {
     "diff_subclass": {},
