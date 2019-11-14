@@ -152,10 +152,10 @@ class CIFAR100(VisionDataset):
             tuple: (image, target) where target is index of the target class.
         """
         item_data = {
-                'fine_label':self.data['fine_labels'][index],
-                'coarse_label':self.data['coarse_labels'][index],
-                'filename':self.data['filenames'][index],
-                }
+            'fine_label':self.data['fine_labels'][index],
+            'coarse_label':self.data['coarse_labels'][index],
+            'filename':self.data['filenames'][index],
+        }
 
         img, target = self.data['data'][index], item_data[self.target_key]
 
