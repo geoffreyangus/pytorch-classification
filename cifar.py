@@ -43,7 +43,7 @@ def config():
     cifar_type = 'CIFAR100'
     assert cifar_type in {'CIFAR10', 'CIFAR100'}, f'cifar_type {cifar_type}'
 
-    hypothesis_conditions = [cifar_type, 'superclass']
+    hypothesis_conditions = [cifar_type, 'superclass', 'baseline']
     exp_dir = osp.join('experiments', *hypothesis_conditions)
 
     # meta
@@ -125,7 +125,7 @@ def config():
         num_classes = 10
     elif cifar_type == 'CIFAR100':
         num_classes = 20 if superclass else 100
-    model_name = 'densenet'
+    model_name = 'densenet_2dim_fc'
     model_args = {
         'num_classes': num_classes,
         'depth': 100,
@@ -209,8 +209,8 @@ class TrainingHarness(object):
     @ex.capture
     def _init_model(self, _log, model_name, model_args, device):
         model = models.__dict__[model_name](**model_args)
-        model = torch.nn.DataParallel(model)
         if device != 'cpu':
+            model = torch.nn.DataParallel(model)
             model = model.cuda(device)
         _log.info('total params: %.2fM' % (sum(p.numel()
                                                for p in model.parameters())/1000000.0))
@@ -331,6 +331,7 @@ class TrainingHarness(object):
 
             # compute output
             outputs = self.model(inputs)
+            
             loss = self.criterion(outputs, targets)
 
             # measure accuracy and record loss
@@ -371,13 +372,15 @@ class TrainingHarness(object):
         t = tqdm(total=len(self.dataloaders['test']))
         for batch_idx, (inputs, targets) in enumerate(self.dataloaders['test']):
             if device != 'cpu':
-                inputs, targets = inputs.cuda(device), targets.cuda(device)
+                inputs = inputs.cuda(device)
+                targets = targets.cuda(device)
 
             inputs = torch.autograd.Variable(inputs)
             targets = torch.autograd.Variable(targets)
 
             # compute output
             outputs = self.model(inputs)
+
             loss = self.criterion(outputs, targets)
 
             # measure accuracy and record loss

@@ -1,11 +1,11 @@
 {
   "__doc__": "\nConfig for training harness.\n",
-  "checkpoint_dir": "checkpoints/6994e682-a424-4d07-8198-ba8cd2f2a5c2",
+  "checkpoint_dir": "checkpoints/46bdc2bc-9621-4390-a95f-00f347aa1e18",
   "cifar_type": "CIFAR100",
   "criterion_args": {
-    "m": 0.2,
+    "m": 0.35,
     "num_classes": 20,
-    "s": 7.0
+    "s": 64.0
   },
   "criterion_class": "LMCL_loss",
   "cuda": true,
@@ -121,7 +121,7 @@
     "growthRate": 12,
     "num_classes": 20
   },
-  "model_name": "densenet",
+  "model_name": "densenet_2dim_fc",
   "num_classes": 20,
   "num_epochs": 300,
   "optimizer_args": {
@@ -139,7 +139,7 @@
     ]
   },
   "scheduler_class": "MultiStepLR",
-  "seed": 487348252,
+  "seed": 107548786,
   "superclass": true,
   "superclass_config": {
     "diff_subclass": {},

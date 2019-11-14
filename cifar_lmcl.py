@@ -48,7 +48,7 @@ def config():
 
     # meta
     data_dir = '/Users/geoffreyangus/data'       # on DAWN: '/lfs/1/gangus/data'
-    # data_dir = '/lfs/1/gangus/data'
+    data_dir = '/lfs/1/gangus/data'
 
     cuda = torch.cuda.is_available()
     device = 0 if cuda else 'cpu'
@@ -214,8 +214,8 @@ class TrainingHarness(object):
     @ex.capture
     def _init_model(self, _log, model_name, model_args, device):
         model = models.__dict__[model_name](**model_args)
-        model = torch.nn.DataParallel(model)
         if device != 'cpu':
+            model = torch.nn.DataParallel(model)
             model = model.cuda(device)
         _log.info('total params: %.2fM' % (sum(p.numel()
                                                for p in model.parameters())/1000000.0))
@@ -348,7 +348,7 @@ class TrainingHarness(object):
                 inputs), torch.autograd.Variable(targets)
 
             # compute output
-            emb, out = self.model(inputs)
+            emb, out = self.model(inputs)            
             outputs, mlogits = self.criterion['lmcl_loss'](emb, targets)
             loss = self.criterion['nll_loss'](mlogits, targets)
 
