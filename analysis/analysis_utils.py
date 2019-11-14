@@ -57,11 +57,15 @@ def get_cnn(model_name, model_args):
     )        
     return torch.nn.DataParallel(model)
         
-def load_trained_model(cifar_type, model_name, model_args, checkpoint_dir):
+def load_trained_model(cifar_type, model_name, model_args, checkpoint_dir, lmcl_args=None):
     
     model = get_cnn(model_name, model_args)
     checkpoint = torch.load(f'{checkpoint_dir}/model_best.pth.tar')
     model.load_state_dict(checkpoint['state_dict'])
+    if lmcl_args != None:
+        criterion = getattr(losses, 'LMCL_loss')(**lmcl_args)
+        criterion.load_state_dict(checkpoint['criterion_state_dict'])
+        return model, criterion
     return model
     
 def fetch_dataloaders(data_dir, cifar_type, superclass, dataset_configs, dataloader_configs):
