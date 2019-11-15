@@ -46,6 +46,7 @@ def get_transform(opt):
 
 
     transform_list += [transforms.ToTensor(),
+                       transforms.Lambda(lambda img: print(np.array(img).shape))
                        transforms.Normalize((0.5, 0.5, 0.5),
                                             (0.5, 0.5, 0.5))]
     return transforms.Compose(transform_list)
