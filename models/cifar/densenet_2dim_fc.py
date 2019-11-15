@@ -55,7 +55,6 @@ class BasicBlock(nn.Module):
             out = F.dropout(out, p=self.dropRate, training=self.training)
 
         out = torch.cat((x, out), 1)
-
         return out
 
 
