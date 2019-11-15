@@ -44,6 +44,7 @@ def config():
 
     # path to images (should have subfolders trainA, trainB, valA, valB, etc)
     dataroot = '/Users/geoffreyangus/data/synthetic_xray'
+    dataroot = '/lfs/1/gangus/data/synthetic_xray'
     # input batch size
     batchSize = 1
     # scale images to this size
@@ -164,8 +165,10 @@ class Harness:
     def _init_visualizer(self):
         visualizer = Visualizer(self.opts)
         # create website
-        web_dir = os.path.join(self.opts.results_dir, self.opts.name, '%s_%s' % (self.opts.phase, self.opts.which_epoch))
-        webpage = html.HTML(web_dir, 'Experiment = %s, Phase = %s, Epoch = %s' % (self.opts.name, self.opts.phase, self.opts.which_epoch))
+        web_dir = None
+        webpage = None 
+#       web_dir = os.path.join(self.opts.results_dir, self.opts.name, '%s_%s' % (self.opts.phase, self.opts.which_epoch))
+ #       webpage = html.HTML(web_dir, 'Experiment = %s, Phase = %s, Epoch = %s' % (self.opts.name, self.opts.phase, self.opts.which_epoch))
         return visualizer, web_dir, webpage
 
     @ex.capture
@@ -180,12 +183,12 @@ class Harness:
             visuals = self.model.get_current_visuals()
             img_path = self.model.get_image_paths()
             print('%04d: process image... %s' % (i, img_path))
-            if sourceoftest == 'internal':
-                self.visualizer.save_images(self.webpage, visuals, img_path)
-            elif sourceoftest == 'external':
-                self.visualizer.save_images_nogt(self.webpage, visuals, img_path)
+#            if sourceoftest == 'internal':
+#                self.visualizer.save_images(self.webpage, visuals, img_path)
+#            elif sourceoftest == 'external':
+#                self.visualizer.save_images_nogt(self.webpage, visuals, img_path)
 
-        self.webpage.save()
+#        self.webpage.save()
 
 
 

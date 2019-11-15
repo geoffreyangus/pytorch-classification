@@ -44,11 +44,10 @@ def get_transform(opt):
     elif opt.resize_or_crop == 'none':
         pass
 
-
     transform_list += [transforms.ToTensor(),
-                       transforms.Lambda(lambda img: print(np.array(img).shape))
                        transforms.Normalize((0.5, 0.5, 0.5),
                                             (0.5, 0.5, 0.5))]
+
     return transforms.Compose(transform_list)
 
 def __scale_width(img, target_width):
@@ -83,6 +82,7 @@ def __padding(img_open):
         img = Image.new('L', (ceil8(width), ceil8(height)), 0)
 
     img.paste(img_open, (0,0,width,height))
+    print(img.mode, img.size)
     return img
 
 
