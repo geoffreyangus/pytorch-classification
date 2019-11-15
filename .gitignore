@@ -100,7 +100,8 @@ ENV/
 .ropeproject
 
 # experiments
-checkpoints
+# checkpoints
+*.pth.tar
 
 # VS Code
 .vscode

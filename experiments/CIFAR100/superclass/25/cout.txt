@@ -1,0 +1,48 @@
+INFO - training - Running command 'main'
+INFO - training - Started run with ID "25"
+Using coarse labels...
+INFO - _init_datasets - loaded train dataset for CIFAR100
+INFO - _init_datasets - length of train dataset: 50000
+Using coarse labels...
+INFO - _init_datasets - loaded test dataset for CIFAR100
+INFO - _init_datasets - length of test dataset: 10000
+INFO - _init_dataloaders - loaded train dataloader
+INFO - _init_dataloaders - loaded test dataloader
+INFO - _init_model - total params: 0.77M
+INFO - run - 
+Epoch: [1 | 300] LR: 0.100000
+
+  0%|          | 0/391 [00:00<?, ?it/s]
+  0%|          | 0/391 [00:02<?, ?it/s, loss=4.371, top1=6.250, top5=27.344]
+  0%|          | 1/391 [00:02<14:11,  2.18s/it, loss=4.371, top1=6.250, top5=27.344]
+  0%|          | 1/391 [00:02<14:11,  2.18s/it, loss=4.407, top1=4.688, top5=25.391]
+  1%|          | 2/391 [00:02<10:20,  1.60s/it, loss=4.407, top1=4.688, top5=25.391]
+  1%|          | 2/391 [00:02<10:20,  1.60s/it, loss=4.415, top1=4.688, top5=23.958]
+  1%|          | 3/391 [00:02<07:35,  1.17s/it, loss=4.415, top1=4.688, top5=23.958]
+  1%|          | 3/391 [00:02<07:35,  1.17s/it, loss=4.400, top1=5.078, top5=25.781]
+  1%|          | 4/391 [00:02<05:39,  1.14it/s, loss=4.400, top1=5.078, top5=25.781]
+  1%|          | 4/391 [00:02<05:39,  1.14it/s, loss=4.401, top1=4.688, top5=24.844]
+  1%|▏         | 5/391 [00:02<04:19,  1.49it/s, loss=4.401, top1=4.688, top5=24.844]
+  1%|▏         | 5/391 [00:03<03:56,  1.63it/s, loss=4.401, top1=4.688, top5=24.844]
+
+  0%|          | 0/100 [00:00<?, ?it/s]
+  0%|          | 0/100 [00:00<?, ?it/s, loss=4.432, top1=3.000, top5=25.000]
+  1%|          | 1/100 [00:00<01:31,  1.08it/s, loss=4.432, top1=3.000, top5=25.000]
+  1%|          | 1/100 [00:01<01:31,  1.08it/s, loss=4.391, top1=7.500, top5=30.000]
+  2%|▏         | 2/100 [00:01<01:30,  1.08it/s, loss=4.416, top1=6.333, top5=26.333]
+  3%|▎         | 3/100 [00:01<01:04,  1.49it/s, loss=4.416, top1=6.333, top5=26.333]
+  3%|▎         | 3/100 [00:01<01:04,  1.49it/s, loss=4.425, top1=5.750, top5=25.250]
+  4%|▍         | 4/100 [00:01<01:04,  1.49it/s, loss=4.435, top1=5.800, top5=24.600]
+  5%|▌         | 5/100 [00:01<00:23,  4.02it/s, loss=4.435, top1=5.800, top5=24.600]
+INFO - run - 
+Epoch: [2 | 300] LR: 0.100000
+
+  0%|          | 0/391 [00:00<?, ?it/s]
+  0%|          | 0/391 [00:00<?, ?it/s, loss=4.329, top1=10.938, top5=34.375]
+  0%|          | 1/391 [00:00<03:42,  1.75it/s, loss=4.329, top1=10.938, top5=34.375]
+  0%|          | 1/391 [00:00<03:42,  1.75it/s, loss=4.346, top1=9.375, top5=30.469] 
+  1%|          | 2/391 [00:00<02:57,  2.19it/s, loss=4.346, top1=9.375, top5=30.469]
+  1%|          | 2/391 [00:00<02:57,  2.19it/s, loss=4.341, top1=10.938, top5=29.948]
+  1%|          | 3/391 [00:00<02:25,  2.67it/s, loss=4.341, top1=10.938, top5=29.948]
+  1%|          | 3/391 [00:01<02:25,  2.67it/s, loss=4.310, top1=11.719, top5=33.398]
+  1%|          | 4/391 [00:01<02:03,  3.14it/s, loss=4.310, top1=11.719, top5=33.398]
