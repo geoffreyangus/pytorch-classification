@@ -21,7 +21,7 @@ from tqdm import tqdm
 from sacred import Experiment
 from sacred.observers import FileStorageObserver
 
-from data.data_loader import CreateDataLoader
+from dataset.data_loader import CreateDataLoader
 from util.visualizer import Visualizer
 from util import html
 from models.scale_rcnn import SRCNN
