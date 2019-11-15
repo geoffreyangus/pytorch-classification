@@ -10,37 +10,37 @@ import torch.nn.functional as F
 
 
 class SRCNN(BaseModel):
-
     def name(self):
         return 'Scale Recurrent CNN'
 
     def initialize(self, opt):
-        """
-        """
         BaseModel.initialize(self, opt)
-        self.isTrain = isTrain
+        self.isTrain = opt.isTrain
         # define tensors
-        self.input_A0 = self.Tensor(batchSize, input_nc,
-                                    int(fineSize/4), int(fineSize/4))
-        self.input_B0 = self.Tensor(batchSize, output_nc,
-                                    int(fineSize/4), int(fineSize/4))
-        self.input_A1 = self.Tensor(batchSize, input_nc,
-                                    int(fineSize/2), int(fineSize/2))
-        self.input_B1 = self.Tensor(batchSize, output_nc,
-                                    int(fineSize/2), int(fineSize/2))
+        self.input_A0 = self.Tensor(opt.batchSize, opt.input_nc,
+                                   int(opt.fineSize/4), int(opt.fineSize/4))
+        self.input_B0 = self.Tensor(opt.batchSize, opt.output_nc,
+                                   int(opt.fineSize/4), int(opt.fineSize/4))
+        self.input_A1 = self.Tensor(opt.batchSize, opt.input_nc,
+                                   int(opt.fineSize/2), int(opt.fineSize/2))
+        self.input_B1 = self.Tensor(opt.batchSize, opt.output_nc,
+                                   int(opt.fineSize/2), int(opt.fineSize/2))
 
-        self.input_A2 = self.Tensor(batchSize, input_nc,
-                                    fineSize, fineSize)
-        self.input_B2 = self.Tensor(batchSize, output_nc,
-                                    fineSize, fineSize)
-        self.nclass = output_nc
+        self.input_A2 = self.Tensor(opt.batchSize, opt.input_nc,
+                                   opt.fineSize, opt.fineSize)
+        self.input_B2 = self.Tensor(opt.batchSize, opt.output_nc,
+                                   opt.fineSize, opt.fineSize)
+        self.nclass = opt.output_nc
         # load/define networks
 
-        self.netG = networks.define_G(input_nc, output_nc, ngf,
-                                      which_model_netG, norm, not no_dropout, init_type, self.gpu_ids, output_nc)
+        self.netG = networks.define_G(opt.input_nc, opt.output_nc, opt.ngf,
+                                      opt.which_model_netG, opt.norm, not opt.no_dropout, opt.init_type, self.gpu_ids, opt.output_nc)
+
 
         if not self.isTrain or opt.continue_train:
             self.load_network(self.netG, 'G', opt.which_epoch)
+
+
 
         if self.isTrain:
             self.old_lr = opt.lr
@@ -78,6 +78,7 @@ class SRCNN(BaseModel):
         self.input_A2.resize_(input_A2.size()).copy_(input_A2)
         self.input_B2.resize_(input_B2.size()).copy_(input_B2)
 
+
         self.image_paths = input['A_paths']
 
     def forward(self):
@@ -93,11 +94,11 @@ class SRCNN(BaseModel):
         self.fake_B1 = output_list[1]
         self.fake_B2 = output_list[2]
 
+
         self.real_B0 = self.input_B0
         self.real_B1 = self.input_B1
         self.real_B2 = self.input_B2
     # no backprop gradients
-
     def test(self):
         with torch.no_grad():
             self.real_A0 = self.input_A0
@@ -112,29 +113,24 @@ class SRCNN(BaseModel):
             self.fake_B1 = output_list[1]
             self.fake_B2 = output_list[2]
 
+
             self.real_B0 = self.input_B0
             self.real_B1 = self.input_B1
             self.real_B2 = self.input_B2
     # get image paths
-
     def get_image_paths(self):
         return self.image_paths
 
     def backward_G(self):
-
-        self.loss_G_scale0 = self.criterion(
-            self.fake_B0[:, 0:5, :, :], self.real_B0, weight=torch.Tensor([1, 40, 80]).cuda())
-        self.loss_G_scale1 = self.criterion(
-            self.fake_B1[:, 0:5, :, :], self.real_B1, weight=torch.Tensor([1, 40, 80]).cuda())
-        self.loss_G_scale2 = self.criterion(
-            self.fake_B2[:, 0:5, :, :], self.real_B2, weight=torch.Tensor([1, 40, 80]).cuda())
+        self.loss_G_scale0 = self.criterion(self.fake_B0[:,0:5,:,:], self.real_B0, weight=torch.Tensor([1, 40, 80]).cuda())
+        self.loss_G_scale1 = self.criterion(self.fake_B1[:,0:5,:,:], self.real_B1, weight=torch.Tensor([1, 40, 80]).cuda())
+        self.loss_G_scale2 = self.criterion(self.fake_B2[:,0:5,:,:], self.real_B2, weight=torch.Tensor([1, 40, 80]).cuda())
 
         self.loss_G = self.loss_G_scale0 + self.loss_G_scale1 + self.loss_G_scale2
         self.loss_G.backward()
 
     def optimize_parameters(self):
         self.forward()
-
         self.optimizer_G.zero_grad()
         self.backward_G()
         self.optimizer_G.step()
@@ -151,19 +147,13 @@ class SRCNN(BaseModel):
         real_A2 = util.tensor2im(self.real_A2)
 
         # original
-        fake_B0 = util.tensor2im_segmap(
-            F.softmax(self.fake_B0, dim=1)[:, [0, 1, 2], :, :])
-        fake_B1 = util.tensor2im_segmap(
-            F.softmax(self.fake_B1, dim=1)[:, [0, 1, 2], :, :])
-        fake_B2 = util.tensor2im_segmap(
-            F.softmax(self.fake_B2, dim=1)[:, [0, 1, 2], :, :])
+        fake_B0 = util.tensor2im_segmap(F.softmax(self.fake_B0, dim=1)[:,[0,1,2],:,:])
+        fake_B1 = util.tensor2im_segmap(F.softmax(self.fake_B1, dim=1)[:,[0,1,2],:,:])
+        fake_B2 = util.tensor2im_segmap(F.softmax(self.fake_B2, dim=1)[:,[0,1,2],:,:])
 
-        real_B0 = util.tensor2im(self.one2multimap(
-            self.real_B0)[:, [0, 1, 2], :, :])
-        real_B1 = util.tensor2im(self.one2multimap(
-            self.real_B1)[:, [0, 1, 2], :, :])
-        real_B2 = util.tensor2im(self.one2multimap(
-            self.real_B2)[:, [0, 1, 2], :, :])
+        real_B0 = util.tensor2im(self.one2multimap(self.real_B0)[:,[0,1,2],:,:])
+        real_B1 = util.tensor2im(self.one2multimap(self.real_B1)[:,[0,1,2],:,:])
+        real_B2 = util.tensor2im(self.one2multimap(self.real_B2)[:,[0,1,2],:,:])
 
         return OrderedDict([('real_A0', real_A0), ('real_A1', real_A1), ('real_A2', real_A2), ('fake_B0', fake_B0), ('fake_B1', fake_B1), ('fake_B2', fake_B2), ('real_B0', real_B0), ('real_B1', real_B1), ('real_B2', real_B2)])
 
@@ -179,6 +169,7 @@ class SRCNN(BaseModel):
         map = Variable(torch.Tensor(map).unsqueeze(1).cuda())
         return map
 
+
     def one2multimap(self, map):
         map = map.squeeze(dim=1)
         map = map.cpu().numpy()
@@ -187,7 +178,7 @@ class SRCNN(BaseModel):
         output_map = []
         for i in range(self.nclass):
             tmp = np.zeros(map.shape)
-            tmp[map == i] = 1
+            tmp[map==i] = 1
             output_map.append(tmp)
 
         out = np.stack(output_map, 1).astype(np.float32)
