@@ -175,7 +175,6 @@ class Harness:
     @ex.capture
     def run(self, how_many, sourceoftest):
         dataset = self.dataloader.load_data()
-        t = tqdm(total=len(dataset))
         for i, data in enumerate(dataset):
             if i >= how_many:
                 break
@@ -189,8 +188,7 @@ class Harness:
                 self.visualizer.save_images(self.webpage, visuals, img_path)
             elif sourceoftest == 'external':
                 self.visualizer.save_images_nogt(self.webpage, visuals, img_path)
-            t.update()
-        t.close()
+
         self.webpage.save()
 
 
