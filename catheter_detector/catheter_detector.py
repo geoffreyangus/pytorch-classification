@@ -39,6 +39,9 @@ def config():
     """
     Config for catheter detector.
     """
+    hypothesis_conditions = ['catheter_detector', 'synthetic_xray']
+    exp_dir = osp.join('../experiments', *hypothesis_conditions)
+
     isTrain = False
     use_annot = True
 
@@ -165,10 +168,8 @@ class Harness:
     def _init_visualizer(self):
         visualizer = Visualizer(self.opts)
         # create website
-        web_dir = None
-        webpage = None 
-#       web_dir = os.path.join(self.opts.results_dir, self.opts.name, '%s_%s' % (self.opts.phase, self.opts.which_epoch))
- #       webpage = html.HTML(web_dir, 'Experiment = %s, Phase = %s, Epoch = %s' % (self.opts.name, self.opts.phase, self.opts.which_epoch))
+        web_dir = os.path.join(self.opts.results_dir, self.opts.name, '%s_%s' % (self.opts.phase, self.opts.which_epoch))
+        webpage = html.HTML(web_dir, 'Experiment = %s, Phase = %s, Epoch = %s' % (self.opts.name, self.opts.phase, self.opts.which_epoch))
         return visualizer, web_dir, webpage
 
     @ex.capture
@@ -183,20 +184,19 @@ class Harness:
             visuals = self.model.get_current_visuals()
             img_path = self.model.get_image_paths()
             print('%04d: process image... %s' % (i, img_path))
-#            if sourceoftest == 'internal':
-#                self.visualizer.save_images(self.webpage, visuals, img_path)
-#            elif sourceoftest == 'external':
-#                self.visualizer.save_images_nogt(self.webpage, visuals, img_path)
+            if sourceoftest == 'internal':
+                self.visualizer.save_images(self.webpage, visuals, img_path)
+            elif sourceoftest == 'external':
+                self.visualizer.save_images_nogt(self.webpage, visuals, img_path)
 
-#        self.webpage.save()
+        self.webpage.save()
 
 
-
-# @ex.config_hook
-# def hook(config, command_name, logger):
-#     if config['exp_dir'] == None:
-#         raise Exception(f'exp_dir is {config["exp_dir"]}')
-#     ex.observers.append(FileStorageObserver(config['exp_dir']))
+@ex.config_hook
+def hook(config, command_name, logger):
+    if config['exp_dir'] == None:
+        raise Exception(f'exp_dir is {config["exp_dir"]}')
+    ex.observers.append(FileStorageObserver(config['exp_dir']))
 
 
 @ex.main
