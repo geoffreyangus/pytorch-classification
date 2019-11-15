@@ -45,6 +45,12 @@ def get_transform(opt):
         pass
 
     transform_list += [transforms.ToTensor(),
+                       transforms.Lambda(
+                           lambda img: transforms.Normalize((0.5, 0.5, 0.5),
+                                                            (0.5, 0.5, 0.5))
+                                       if img.mode == 'RGB' else
+                                       transforms.Normalize([0.5], [0.5])
+                       )
                        transforms.Normalize((0.5, 0.5, 0.5),
                                             (0.5, 0.5, 0.5))]
 
