@@ -1,0 +1,148 @@
+{
+  "__doc__": "\nConfig for training harness.\n",
+  "checkpoint_dir": "checkpoints/ec130c7f-2f97-48ba-be7e-8b991882b736",
+  "cifar_type": "CIFAR100",
+  "criterion_args": {
+    "feat_dim": 24,
+    "m": 0.2,
+    "num_classes": 20,
+    "s": 7.0
+  },
+  "criterion_class": "LMCL_loss",
+  "cuda": true,
+  "data_dir": "/lfs/1/gangus/data",
+  "dataloader_configs": {
+    "test": {
+      "batch_size": 100,
+      "num_workers": 4,
+      "shuffle": false
+    },
+    "train": {
+      "batch_size": 128,
+      "num_workers": 4,
+      "shuffle": true
+    }
+  },
+  "dataset_configs": {
+    "test": {
+      "diff_subclass": {},
+      "subsample_subclass": {},
+      "superclass": true,
+      "transform": {
+        "py/object": "torchvision.transforms.transforms.Compose",
+        "transforms": [
+          {
+            "py/object": "torchvision.transforms.transforms.ToTensor"
+          },
+          {
+            "inplace": false,
+            "mean": {
+              "py/tuple": [
+                0.4914,
+                0.4822,
+                0.4465
+              ]
+            },
+            "py/object": "torchvision.transforms.transforms.Normalize",
+            "std": {
+              "py/tuple": [
+                0.2023,
+                0.1994,
+                0.201
+              ]
+            }
+          }
+        ]
+      },
+      "whiten_subclass": {}
+    },
+    "train": {
+      "diff_subclass": {},
+      "subsample_subclass": {},
+      "superclass": true,
+      "transform": {
+        "py/object": "torchvision.transforms.transforms.Compose",
+        "transforms": [
+          {
+            "fill": 0,
+            "pad_if_needed": false,
+            "padding": 4,
+            "padding_mode": "constant",
+            "py/object": "torchvision.transforms.transforms.RandomCrop",
+            "size": {
+              "py/tuple": [
+                32,
+                32
+              ]
+            }
+          },
+          {
+            "p": 0.5,
+            "py/object": "torchvision.transforms.transforms.RandomHorizontalFlip"
+          },
+          {
+            "py/object": "torchvision.transforms.transforms.ToTensor"
+          },
+          {
+            "inplace": false,
+            "mean": {
+              "py/tuple": [
+                0.4914,
+                0.4822,
+                0.4465
+              ]
+            },
+            "py/object": "torchvision.transforms.transforms.Normalize",
+            "std": {
+              "py/tuple": [
+                0.2023,
+                0.1994,
+                0.201
+              ]
+            }
+          }
+        ]
+      },
+      "whiten_subclass": {}
+    }
+  },
+  "device": 0,
+  "evaluate": false,
+  "exp_dir": "experiments/CIFAR100/superclass",
+  "hypothesis_conditions": [
+    "CIFAR100",
+    "superclass"
+  ],
+  "model_args": {
+    "compressionRate": 2,
+    "depth": 100,
+    "dropRate": 0.0,
+    "embeddings": true,
+    "growthRate": 12,
+    "num_classes": 20
+  },
+  "model_name": "densenet",
+  "num_classes": 20,
+  "num_epochs": 300,
+  "optimizer_args": {
+    "lr": 0.1,
+    "momentum": 0.9,
+    "weight_decay": 0.0001
+  },
+  "optimizer_class": "SGD",
+  "resume": null,
+  "scheduler_args": {
+    "gamma": 0.1,
+    "schedule": [
+      150,
+      225
+    ]
+  },
+  "seed": 25004774,
+  "superclass": true,
+  "superclass_config": {
+    "diff_subclass": {},
+    "subsample_subclass": {},
+    "whiten_subclass": {}
+  }
+}
