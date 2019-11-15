@@ -241,7 +241,7 @@ class CLSTMCell(nn.Module):
 
 	def init_hidden(self, batch_size, spatial_size):
 		return (Variable(torch.zeros(batch_size, self.hidden_dim, spatial_size[0], spatial_size[1])).cuda(),
-                    Variable(torch.zeros(batch_size, self.hidden_dim, spatial_size[0], spatial_size[1])).cuda())
+                Variable(torch.zeros(batch_size, self.hidden_dim, spatial_size[0], spatial_size[1])).cuda())
 
 
 class SRCNN(nn.Module):
@@ -337,7 +337,7 @@ class SRCNN(nn.Module):
 		output = []
 
 		I = Variable(torch.zeros(batch_size, self.nclass,
-                           int(hh/4), int(ww/4))).cuda()
+                           		 int(hh/4), int(ww/4))).cuda()
 		#input list small-mid-large
 		for t in range(seq_len):
 			# print(I.data.cpu().size())
