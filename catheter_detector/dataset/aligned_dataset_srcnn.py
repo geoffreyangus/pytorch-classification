@@ -31,10 +31,8 @@ class AlignedDatasetSRCNN(BaseDataset):
 	def __getitem__(self, index):
 		A_path = self.A_paths[index]
 		B_path = self.B_paths[index]
-		print(B_path)
 		A = Image.open(A_path).convert('RGB')
 		B = Image.open(B_path).convert('RGB')
-		print(np.array(B).shape)
 
 		#encode color labeling to numbers
 		B = self.encode_labelmap_color(B)
@@ -128,13 +126,6 @@ class AlignedDatasetSRCNN(BaseDataset):
 		A2 = A2.resize((w_scale2, h_scale2), Image.BICUBIC)
 		B2 = B2.resize((w_scale2, h_scale2), Image.NEAREST)
                 
-		print(np.array(A0).shape)
-		print(np.array(B0).shape)
-		print(np.array(A1).shape)
-		print(np.array(B1).shape)
-		print(np.array(A2).shape)
-		print(np.array(B2).shape)
-
 		A0 = self.transform(A0)
 		B0 = self.transform(B0)
 		A1 = self.transform(A1)
