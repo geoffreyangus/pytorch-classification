@@ -59,7 +59,7 @@ def config():
     # selects model to use for netG
     which_model_netG = 'srcnn'
     # gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU
-    gpu_ids = 0
+    gpu_ids = [0]
     # name of the experiment. It decides where to store samples and models
     name = 'experiment_name'
     # chooses how datasets are loaded.
