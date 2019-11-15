@@ -125,7 +125,7 @@ def config():
         num_classes = 10
     elif cifar_type == 'CIFAR100':
         num_classes = 20 if superclass else 100
-    model_name = 'densenet_2dim_fc'
+    model_name = 'densenet'
     model_args = {
         'num_classes': num_classes,
         'depth': 100,
@@ -139,16 +139,15 @@ def config():
     criterion_class = 'LMCL_loss'
     criterion_args = {
         'num_classes': num_classes,
-        's': 64.00,
+        's': 200.00,
         'm': 0.35
     }
 
     # optimizer config
-    optimizer_class = 'SGD'
+    optimizer_class = 'Adam'
     optimizer_args = {
         'lr': 0.1,
-        'momentum': 0.9,
-        'weight_decay': 1e-4                    # typically 1e-4
+        'weight_decay': 0.000                    # typically 1e-4
     }
 
     # scheduler config
@@ -227,7 +226,7 @@ class TrainingHarness(object):
             'this file is for LMCL loss only due to training schematic'
         criterion_dict = {}
         criterion_dict['nll_loss'] = losses.CrossEntropyLoss()
-        criterion_dict['lmcl_loss'] = getattr(losses, criterion_class)(feat_dim=2, **criterion_args)
+        criterion_dict['lmcl_loss'] = getattr(losses, criterion_class)(feat_dim=self.model.module.inplanes, **criterion_args)
         if device != 'cpu':
             criterion_dict['lmcl_loss'] = criterion_dict['lmcl_loss'].cuda(device)
         return criterion_dict
@@ -236,7 +235,7 @@ class TrainingHarness(object):
     def _init_optimizer(self, optimizer_class, optimizer_args):
         optimizer_dict = {}
         optimizer_dict['nn'] = getattr(optimizers, optimizer_class)(self.model.parameters(), **optimizer_args)
-        optimizer_dict['centers'] = optimizers.SGD(self.criterion['lmcl_loss'].parameters(), lr=0.01)
+        optimizer_dict['centers'] = getattr(optimizers, optimizer_class)(self.criterion['lmcl_loss'].parameters(), **optimizer_args)
         return optimizer_dict
 
     @ex.capture

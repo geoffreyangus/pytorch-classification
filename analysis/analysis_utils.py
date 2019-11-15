@@ -13,6 +13,7 @@ from sklearn.metrics import accuracy_score
 from collections import defaultdict
 
 import models.cifar as models
+import losses.losses as losses
 from dataset import CIFAR100, collate_train, collate_test
 
 def get_coarse_accuracies(prediction_df):
