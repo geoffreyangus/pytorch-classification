@@ -36,7 +36,6 @@ class AlignedDatasetSRCNN(BaseDataset):
 
 		#encode color labeling to numbers
 		B = self.encode_labelmap_color(B)
-		print(np.array(B).shape)
 		# make the image width loadSize
 		ow, oh = A.size
 		dw = self.opt.loadSize
