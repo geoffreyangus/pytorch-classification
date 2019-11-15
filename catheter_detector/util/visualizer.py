@@ -103,13 +103,13 @@ class Visualizer():
         self.plot_data['X'].append(epoch + counter_ratio)
         self.plot_data['Y'].append([errors[k] for k in self.plot_data['legend']])
 
-        if len(list(errors.keys())) == 1:           
+        if len(list(errors.keys())) == 1:
             a = np.array(self.plot_data['X'])
             b = np.array(self.plot_data['Y']).squeeze(axis=1)
         else:
             a=np.stack([np.array(self.plot_data['X'])] * len(self.plot_data['legend']), 1)
-            b=np.array(self.plot_data['Y'])   
-  
+            b=np.array(self.plot_data['Y'])
+
 
         self.vis.line(
             X=a,

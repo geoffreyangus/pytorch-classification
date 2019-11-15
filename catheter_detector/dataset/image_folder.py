@@ -26,17 +26,17 @@ def make_dataset(dir, split):
     images = []
     assert os.path.isdir(dir), '%s is not a valid directory' % dir
 
-    for root, _, fnames in sorted(os.walk(dir)):
-        for fname in fnames:
-            if is_image_file(fname):
-                path = os.path.join(root, fname)
-                images.append(path)
+    # for root, _, fnames in sorted(os.walk(dir)):
+    #     for fname in fnames:
+    #         if is_image_file(fname):
+    #             path = os.path.join(root, fname)
+    #             images.append(path)
 
-    # df = pd.read_csv(os.path.join(os.environ['CXRDATA'],'CXR8-ORIG-DRAIN-SLICE-DATA',f'{split}.tsv'),sep='\t')
-    # fnames = [os.path.join(os.environ['CXR8IMAGES'],fl) for fl in df['Image Index']]
-    # for fname in fnames:
-    #     if is_image_file(fname):
-    #         images.append(fname)
+    df = pd.read_csv(os.path.join(os.environ['CXRDATA'],'CXR8-ORIG-DRAIN-SLICE-DATA',f'{split}.tsv'),sep='\t')
+    fnames = [os.path.join(os.environ['CXR8IMAGES'], fl) for fl in df['Image Index']]
+    for fname in fnames:
+        if is_image_file(fname):
+            images.append(fname)
 
     return images
 
