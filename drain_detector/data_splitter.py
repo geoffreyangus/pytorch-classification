@@ -9,7 +9,7 @@ from sacred import Experiment
 from sacred.observers import FileStorageObserver
 import yaml
 
-import cow_tus.util.util as util
+import util
 
 
 EXPERIMENT_NAME = 'splitter'
