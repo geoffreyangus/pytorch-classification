@@ -1,5 +1,5 @@
 import os
-import os.path as path
+import os.path as osp
 from collections import Counter, defaultdict, deque
 import random
 
@@ -23,7 +23,7 @@ def config():
     data_dir = '/lfs/1/gangus/data/chexnet/CXR8-ORIG-DRAIN-SLICE-DATA/drain_detection'
 
     hypothesis_conditions = ['by-patient-id']
-    exp_dir = path.join('data', 'split', *hypothesis_conditions)
+    exp_dir = osp.join('data', 'split', *hypothesis_conditions)
 
     strata_key = 'Patient ID'
     item_key = 'Image Index'
@@ -34,7 +34,7 @@ def config():
         'valid': 100,
         'test': 0
     }
-    split_to_count['train'] = len(pd.read_csv(path.join(
+    split_to_count['train'] = len(pd.read_csv(osp.join(
         data_dir, 'attrs.tsv'), sep='\t', index_col=0).index.unique()) - sum(split_to_count.values())
     train_split = 'train'
 
@@ -56,7 +56,7 @@ class DataSplitter:
             'meta.strata_key': strata_key
         })
 
-        attrs_path = path.join(data_dir, 'attrs.csv')
+        attrs_path = osp.join(data_dir, 'attrs.csv')
         attrs_df = pd.read_csv(attrs_path, index_col=0)
 
         split_to_quota = self._analyze(attrs_df)
@@ -65,12 +65,12 @@ class DataSplitter:
 
         split_to_split_df = self._format(attrs_df, split_to_item_ids)
         for split, split_df in split_to_split_df.items():
-            split_df_path = path.join(exp_dir, f'{split}.csv')
+            split_df_path = osp.join(exp_dir, f'{split}.csv')
             _log.info(f'saving to {split_df_path}')
             split_df.to_csv(split_df_path)
             ex.add_artifact(split_df_path)
 
-        metadata_path = path.join(exp_dir, 'metadata.yaml')
+        metadata_path = osp.join(exp_dir, 'metadata.yaml')
         with open(metadata_path, 'w') as f:
             f.write(yaml.dump(self.metadata))
         ex.add_artifact(metadata_path)
