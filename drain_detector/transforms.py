@@ -31,7 +31,7 @@ def config():
                 'args': {
                     'channels': [1, 2]
                 }
-            }
+            },
             {
                 'class_name': 'ToTensor',
                 'args': {}
