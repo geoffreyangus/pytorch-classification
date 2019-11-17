@@ -103,6 +103,8 @@ ENV/
 # experiments
 # checkpoints
 *.pth.tar
+*.pth
 
 # VS Code
 .vscode
+.emmental

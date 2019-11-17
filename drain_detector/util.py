@@ -2,7 +2,7 @@ import os
 import os.path as osp
 
 import transforms as custom_transforms
-from torchvision import transforms
+import torchvision.transforms as transforms
 import torch.nn.functional as F
 
 
