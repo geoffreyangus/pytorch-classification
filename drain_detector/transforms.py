@@ -12,7 +12,7 @@ def config():
                 'args': {
                     'num_output_channels': 1
                 }
-            }
+            },
             {
                 'class_name': 'ToTensor',
                 'args': {}
@@ -46,6 +46,7 @@ def config():
         ],
         'joint': []
     }
+
     # TODO: apply data augmentation to joint images
     augmentation = {
         'x1': [],
