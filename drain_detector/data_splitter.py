@@ -47,7 +47,7 @@ class DataSplitter:
         self.metadata = {}
 
     @ex.capture
-    def run(self, group_dir, data_dir, hypothesis_conditions, split_to_count, strata_key):
+    def run(self, group_dir, data_dir, hypothesis_conditions, split_to_count, strata_key, _log):
         """
         """
         self.metadata.update({
@@ -66,6 +66,7 @@ class DataSplitter:
         split_to_split_df = self._format(attrs_df, split_to_item_ids)
         for split, split_df in split_to_split_df.items():
             split_df_path = path.join(group_dir, f'{split}.csv')
+            _log.info(f'saving to {split_df_path}')
             split_df.to_csv(split_df_path)
             ex.add_artifact(split_df_path)
 
