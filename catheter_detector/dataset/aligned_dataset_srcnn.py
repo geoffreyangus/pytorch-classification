@@ -124,7 +124,7 @@ class AlignedDatasetSRCNN(BaseDataset):
 		B1 = B1.resize((w_scale1, h_scale1), Image.NEAREST)
 		A2 = A2.resize((w_scale2, h_scale2), Image.BICUBIC)
 		B2 = B2.resize((w_scale2, h_scale2), Image.NEAREST)
-                
+
 		A0 = self.transform(A0)
 		B0 = self.transform(B0)
 		A1 = self.transform(A1)
