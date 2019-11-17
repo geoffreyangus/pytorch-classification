@@ -52,3 +52,16 @@ def config():
         'x2': [],
         'joint': []
     }
+
+
+class ChooseChannels:
+    """
+    Select a subset of available channels in a PIL Image.
+
+    Returns a numpy array.
+    """
+    def __init__(self, channels):
+        self.channels = channels
+
+    def __call__(self, img):
+        return np.array(img)[:, :, self.channels]

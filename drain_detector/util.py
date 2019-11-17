@@ -18,7 +18,6 @@ def compose(fn_list):
     return transforms.Compose(transforms_list)
 
 
-
 def ce_loss(task_name, immediate_output, Y, active):
     """
     CrossEntropyLoss function to be used with Emmental module.
@@ -33,3 +32,11 @@ def output(task_name, immediate_output):
     Softmax function to be used with Emmental module.
     """
     return F.softmax(immediate_output[f"decoder_module_{task_name}"][0], dim=1)
+
+
+def require_dir(dir_str):
+    """
+    """
+    if not(path.exists(dir_str)):
+        require_dir(path.dirname(dir_str))
+        os.mkdir(dir_str)
