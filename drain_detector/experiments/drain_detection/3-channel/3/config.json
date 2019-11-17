@@ -1,0 +1,326 @@
+{
+  "__doc__": "\nConfiguration for training harness.\n",
+  "dataloader_configs": {
+    "train": {
+      "batch_size": 16,
+      "num_workers": 8,
+      "shuffle": false
+    },
+    "valid": {
+      "batch_size": 32,
+      "num_workers": 8,
+      "shuffle": true
+    }
+  },
+  "dataset_configs": {
+    "train": {
+      "args": {
+        "images_dir": "/lfs/1/gangus/repositories/pytorch-classification/catheter_detector/results/catheter_detect/test_latest/images",
+        "split_dir": "/lfs/1/gangus/repositories/pytorch-classification/drain_detector/data/by-patient-id",
+        "transforms": {
+          "joint": [
+            {
+              "args": {},
+              "class_name": "ToPILImage"
+            },
+            {
+              "args": {
+                "size": 224
+              },
+              "class_name": "Resize"
+            },
+            {
+              "args": {},
+              "class_name": "ToTensor"
+            }
+          ],
+          "x1": [
+            {
+              "args": {
+                "num_output_channels": 1
+              },
+              "class_name": "Grayscale"
+            },
+            {
+              "args": {
+                "axis": -1
+              },
+              "class_name": "Unsqueeze"
+            },
+            {
+              "args": {},
+              "class_name": "ToTensor"
+            },
+            {
+              "args": {
+                "mean": [
+                  0.5
+                ],
+                "std": [
+                  0.5
+                ]
+              },
+              "class_name": "Normalize"
+            }
+          ],
+          "x2": [
+            {
+              "args": {
+                "channels": [
+                  1,
+                  2
+                ]
+              },
+              "class_name": "ChooseChannels"
+            },
+            {
+              "args": {},
+              "class_name": "ToTensor"
+            },
+            {
+              "args": {
+                "mean": [
+                  0.5,
+                  0.5
+                ],
+                "std": [
+                  0.5,
+                  0.5
+                ]
+              },
+              "class_name": "Normalize"
+            }
+          ]
+        }
+      },
+      "class_name": "DrainDetectionDataset"
+    },
+    "valid": {
+      "args": {
+        "images_dir": "/lfs/1/gangus/repositories/pytorch-classification/catheter_detector/results/catheter_detect/test_latest/images",
+        "split_dir": "/lfs/1/gangus/repositories/pytorch-classification/drain_detector/data/by-patient-id",
+        "transforms": {
+          "joint": [
+            {
+              "args": {},
+              "class_name": "ToPILImage"
+            },
+            {
+              "args": {
+                "size": 224
+              },
+              "class_name": "Resize"
+            },
+            {
+              "args": {},
+              "class_name": "ToTensor"
+            }
+          ],
+          "x1": [
+            {
+              "args": {
+                "num_output_channels": 1
+              },
+              "class_name": "Grayscale"
+            },
+            {
+              "args": {
+                "axis": -1
+              },
+              "class_name": "Unsqueeze"
+            },
+            {
+              "args": {},
+              "class_name": "ToTensor"
+            },
+            {
+              "args": {
+                "mean": [
+                  0.5
+                ],
+                "std": [
+                  0.5
+                ]
+              },
+              "class_name": "Normalize"
+            }
+          ],
+          "x2": [
+            {
+              "args": {
+                "channels": [
+                  1,
+                  2
+                ]
+              },
+              "class_name": "ChooseChannels"
+            },
+            {
+              "args": {},
+              "class_name": "ToTensor"
+            },
+            {
+              "args": {
+                "mean": [
+                  0.5,
+                  0.5
+                ],
+                "std": [
+                  0.5,
+                  0.5
+                ]
+              },
+              "class_name": "Normalize"
+            }
+          ]
+        }
+      },
+      "class_name": "DrainDetectionDataset"
+    }
+  },
+  "decoder_args": {
+    "dropout_p": 0.0,
+    "encoding_size": 1024,
+    "num_layers": 2
+  },
+  "decoder_class": "LinearDecoder",
+  "encoder_args": {
+    "pretrained": true
+  },
+  "encoder_class": "ClippedDenseNet",
+  "exp_dir": "experiments/drain_detection/3-channel",
+  "hypothesis_conditions": [
+    "drain_detection",
+    "3-channel"
+  ],
+  "images_dir": "/lfs/1/gangus/repositories/pytorch-classification/catheter_detector/results/catheter_detect/test_latest/images",
+  "learner_config": {
+    "lr_scheduler_config": {
+      "lr_scheduler": "step",
+      "step_config": {
+        "gamma": 0.5,
+        "step_size": 6
+      },
+      "warmup_steps": null,
+      "warmup_unit": "batch"
+    },
+    "n_epochs": 30,
+    "optimizer_config": {
+      "l2": 0.0,
+      "lr": 0.01,
+      "optimizer": "adam"
+    },
+    "valid_split": "valid"
+  },
+  "logging_config": {
+    "checkpointer_config": {
+      "checkpoint_metric": {
+        "primary/detector-dataset/valid/roc_auc": "max"
+      }
+    },
+    "checkpointing": true,
+    "evaluation_freq": 1
+  },
+  "meta_config": {
+    "device": 0
+  },
+  "sampler_configs": {
+    "train": {
+      "args": {
+        "num_samples": 1000,
+        "replacement": true
+      },
+      "class_name": "RandomSampler"
+    }
+  },
+  "seed": 864504242,
+  "split_dir": "/lfs/1/gangus/repositories/pytorch-classification/drain_detector/data/by-patient-id",
+  "task_to_cardinality_dict": {
+    "drain": 2
+  },
+  "task_to_label_dict": {
+    "drain": "drain"
+  },
+  "transforms": {
+    "augmentation": {
+      "joint": [],
+      "x1": [],
+      "x2": []
+    },
+    "preprocessing": {
+      "joint": [
+        {
+          "args": {},
+          "class_name": "ToPILImage"
+        },
+        {
+          "args": {
+            "size": 224
+          },
+          "class_name": "Resize"
+        },
+        {
+          "args": {},
+          "class_name": "ToTensor"
+        }
+      ],
+      "x1": [
+        {
+          "args": {
+            "num_output_channels": 1
+          },
+          "class_name": "Grayscale"
+        },
+        {
+          "args": {
+            "axis": -1
+          },
+          "class_name": "Unsqueeze"
+        },
+        {
+          "args": {},
+          "class_name": "ToTensor"
+        },
+        {
+          "args": {
+            "mean": [
+              0.5
+            ],
+            "std": [
+              0.5
+            ]
+          },
+          "class_name": "Normalize"
+        }
+      ],
+      "x2": [
+        {
+          "args": {
+            "channels": [
+              1,
+              2
+            ]
+          },
+          "class_name": "ChooseChannels"
+        },
+        {
+          "args": {},
+          "class_name": "ToTensor"
+        },
+        {
+          "args": {
+            "mean": [
+              0.5,
+              0.5
+            ],
+            "std": [
+              0.5,
+              0.5
+            ]
+          },
+          "class_name": "Normalize"
+        }
+      ]
+    }
+  }
+}
