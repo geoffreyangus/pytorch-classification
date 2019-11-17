@@ -23,7 +23,7 @@ def config():
     data_dir = '/lfs/1/gangus/data/chexnet/CXR8-ORIG-DRAIN-SLICE-DATA/drain_detection'
 
     hypothesis_conditions = ['by-patient-id']
-    group_dir = path.join('data', 'split', *hypothesis_conditions)
+    exp_dir = path.join('data', 'split', *hypothesis_conditions)
 
     strata_key = 'Patient ID'
     item_key = 'Image Index'
@@ -47,7 +47,7 @@ class DataSplitter:
         self.metadata = {}
 
     @ex.capture
-    def run(self, group_dir, data_dir, hypothesis_conditions, split_to_count, strata_key, _log):
+    def run(self, exp_dir, data_dir, hypothesis_conditions, split_to_count, strata_key, _log):
         """
         """
         self.metadata.update({
@@ -65,12 +65,12 @@ class DataSplitter:
 
         split_to_split_df = self._format(attrs_df, split_to_item_ids)
         for split, split_df in split_to_split_df.items():
-            split_df_path = path.join(group_dir, f'{split}.csv')
+            split_df_path = path.join(exp_dir, f'{split}.csv')
             _log.info(f'saving to {split_df_path}')
             split_df.to_csv(split_df_path)
             ex.add_artifact(split_df_path)
 
-        metadata_path = path.join(group_dir, 'metadata.yaml')
+        metadata_path = path.join(exp_dir, 'metadata.yaml')
         with open(metadata_path, 'w') as f:
             f.write(yaml.dump(self.metadata))
         ex.add_artifact(metadata_path)
@@ -205,3 +205,25 @@ class DataSplitter:
             'split.label_to_freq': dict(split_to_counts)
         })
         return split_to_split_df
+
+
+@ex.config_hook
+def hook(config, command_name, logger):
+    if config['exp_dir'] == None:
+        raise Exception(f'exp_dir is {config["exp_dir"]}')
+    else:
+        util.require_dir(config['exp_dir'])
+    ex.observers.append(FileStorageObserver(config['exp_dir']))
+
+
+@ex.main
+def main(_run):
+    """
+    """
+    splitter = DataSplitter()
+    results = splitter.run()
+    return results
+
+
+if __name__ == '__main__':
+    ex.run_commandline()
