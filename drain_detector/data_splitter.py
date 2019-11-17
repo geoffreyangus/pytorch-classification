@@ -56,8 +56,8 @@ class DataSplitter:
             'meta.strata_key': strata_key
         })
 
-        attrs_path = path.join(data_dir, 'attrs.csv')
-        attrs_df = pd.read_csv(attrs_path, index_col=0)
+        attrs_path = path.join(data_dir, 'attrs.tsv')
+        attrs_df = pd.read_csv(attrs_path, sep='\t', index_col=0)
 
         split_to_quota = self._analyze(attrs_df)
         strata_id_to_items = self._shuffle(attrs_df)
@@ -110,7 +110,7 @@ class DataSplitter:
         for strata_id, strata_group in strata_groups:
             item_groups = strata_group.groupby(item_key)
             for item_id, item_group in item_groups:
-                label = item_group.loc[item_id][item_label]
+                label = item_group.loc[item_group[item_key] == item_id][item_label]
                 try:
                     label = list(set(label))[0]
                 except:
@@ -187,7 +187,7 @@ class DataSplitter:
         split_to_split_df = {}
         split_to_labels = defaultdict(list)
         for split, item_ids in split_to_item_ids.items():
-            split_df = attrs_df.loc[item_ids]
+            split_df = attrs_df.loc[attrs_df[item_key].isin(item_ids)]
             split_to_split_df[split] = split_df
 
             item_groups = split_df.groupby(item_key)
@@ -212,6 +212,7 @@ def hook(config, command_name, logger):
     if config['exp_dir'] == None:
         raise Exception(f'exp_dir is {config["exp_dir"]}')
     else:
+        print(config['exp_dir'])
         util.require_dir(config['exp_dir'])
     ex.observers.append(FileStorageObserver(config['exp_dir']))
 

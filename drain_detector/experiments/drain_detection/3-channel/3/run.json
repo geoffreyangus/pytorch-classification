@@ -1,0 +1,139 @@
+{
+  "artifacts": [],
+  "command": "main",
+  "experiment": {
+    "base_dir": "/lfs/1/gangus/repositories/pytorch-classification/drain_detector",
+    "dependencies": [
+      "emmental==0.0.5",
+      "numpy==1.17.4",
+      "sacred==0.8.0",
+      "torch==1.3.1",
+      "torchvision==0.4.2"
+    ],
+    "mainfile": "train_drain.py",
+    "name": "trainer",
+    "repositories": [
+      {
+        "commit": "824527ced8811e600f8d09625c420c589f9ee74a",
+        "dirty": true,
+        "url": "https://github.com/geoffreyangus/pytorch-classification.git"
+      },
+      {
+        "commit": "824527ced8811e600f8d09625c420c589f9ee74a",
+        "dirty": true,
+        "url": "https://github.com/geoffreyangus/pytorch-classification.git"
+      },
+      {
+        "commit": "824527ced8811e600f8d09625c420c589f9ee74a",
+        "dirty": true,
+        "url": "https://github.com/geoffreyangus/pytorch-classification.git"
+      },
+      {
+        "commit": "824527ced8811e600f8d09625c420c589f9ee74a",
+        "dirty": true,
+        "url": "https://github.com/geoffreyangus/pytorch-classification.git"
+      },
+      {
+        "commit": "824527ced8811e600f8d09625c420c589f9ee74a",
+        "dirty": true,
+        "url": "https://github.com/geoffreyangus/pytorch-classification.git"
+      }
+    ],
+    "sources": [
+      [
+        "dataset.py",
+        "_sources/dataset_9c33914978bbf5f333de31878b2140c7.py"
+      ],
+      [
+        "modules.py",
+        "_sources/modules_2178663d8fc44690fb3365f8bafe5a67.py"
+      ],
+      [
+        "train_drain.py",
+        "_sources/train_drain_a5859ebde9f445f5655973dbf3fdbde3.py"
+      ],
+      [
+        "transforms.py",
+        "_sources/transforms_a2e7eb54d54b694de4b73a3c3bd65326.py"
+      ],
+      [
+        "util.py",
+        "_sources/util_2774e082f3012ada65d055e1f8fe5608.py"
+      ]
+    ]
+  },
+  "fail_trace": [
+    "Traceback (most recent call last):\n",
+    "  File \"/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/sacred/stdout_capturing.py\", line 163, in tee_output_fd\n    yield out  # let the caller do their printing\n",
+    "  File \"/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/sacred/run.py\", line 238, in __call__\n    self.result = self.main_function(*args)\n",
+    "  File \"/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/sacred/config/captured_function.py\", line 42, in captured_function\n    result = wrapped(*args, **kwargs)\n",
+    "  File \"train_drain.py\", line 265, in main\n    res = trainer.run()\n",
+    "  File \"train_drain.py\", line 252, in run\n    learner.learn(self.model, self.dataloaders)\n",
+    "  File \"/lfs/1/gangus/repositories/pytorch-classification/.emmental/src/emmental/learner.py\", line 478, in learn\n    uids, X_dict, Y_dict, task_to_label_dict\n",
+    "  File \"/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/torch/nn/modules/module.py\", line 541, in __call__\n    result = self.forward(*input, **kwargs)\n",
+    "  File \"/lfs/1/gangus/repositories/pytorch-classification/.emmental/src/emmental/model.py\", line 286, in forward\n    Y_dict[label_name], Meta.config[\"model_config\"][\"device\"]\n",
+    "  File \"/lfs/1/gangus/repositories/pytorch-classification/.emmental/src/emmental/utils/utils.py\", line 168, in move_to_device\n    return obj.cuda(device)  # type: ignore\n",
+    "KeyboardInterrupt\n",
+    "\nDuring handling of the above exception, another exception occurred:\n\n",
+    "Traceback (most recent call last):\n",
+    "  File \"/usr/local/lib/python3.6/contextlib.py\", line 99, in __exit__\n    self.gen.throw(type, value, traceback)\n",
+    "  File \"/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/sacred/stdout_capturing.py\", line 175, in tee_output_fd\n    tee_stdout.wait(timeout=1)\n",
+    "  File \"/usr/local/lib/python3.6/subprocess.py\", line 1449, in wait\n    raise TimeoutExpired(self.args, timeout)\n",
+    "subprocess.TimeoutExpired: Command '['tee', '-a', '/tmp/tmp6sz0l5uy']' timed out after 1 seconds\n"
+  ],
+  "heartbeat": "2019-11-17T21:11:48.542935",
+  "host": {
+    "ENV": {},
+    "cpu": "Intel(R) Xeon(R) CPU E5-2690 v4 @ 2.60GHz",
+    "gpus": {
+      "driver_version": "430.26",
+      "gpus": [
+        {
+          "model": "Tesla P100-PCIE-16GB",
+          "persistence_mode": true,
+          "total_memory": 16280
+        }
+      ]
+    },
+    "hostname": "dawn5.stanford.edu",
+    "os": [
+      "Linux",
+      "Linux-4.4.0-124-generic-x86_64-with-debian-stretch-sid"
+    ],
+    "python_version": "3.6.7"
+  },
+  "meta": {
+    "command": "main",
+    "comment": "this experiment attempts to train a pretrained densenet on the overlaid CXR and predicted catheter segmentation output for the task of drain detection",
+    "options": {
+      "--beat-interval": null,
+      "--capture": null,
+      "--comment": "this experiment attempts to train a pretrained densenet on the overlaid CXR and predicted catheter segmentation output for the task of drain detection",
+      "--debug": false,
+      "--enforce_clean": false,
+      "--file_storage": null,
+      "--force": false,
+      "--help": false,
+      "--loglevel": null,
+      "--mongo_db": null,
+      "--name": null,
+      "--pdb": false,
+      "--print-config": false,
+      "--priority": null,
+      "--queue": false,
+      "--s3": null,
+      "--sql": null,
+      "--tiny_db": null,
+      "--unobserve": false,
+      "COMMAND": null,
+      "UPDATE": [],
+      "help": false,
+      "with": false
+    }
+  },
+  "resources": [],
+  "result": null,
+  "start_time": "2019-11-17T21:08:48.809306",
+  "status": "FAILED",
+  "stop_time": "2019-11-17T21:11:48.545032"
+}
