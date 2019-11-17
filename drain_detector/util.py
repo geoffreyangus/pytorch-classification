@@ -1,3 +1,6 @@
+import os
+import os.path as osp
+
 import transforms as custom_transforms
 from torchvision import transforms
 import torch.nn.functional as F
@@ -37,6 +40,6 @@ def output(task_name, immediate_output):
 def require_dir(dir_str):
     """
     """
-    if not(path.exists(dir_str)):
-        require_dir(path.dirname(dir_str))
+    if not(osp.exists(dir_str)):
+        require_dir(osp.dirname(dir_str))
         os.mkdir(dir_str)
