@@ -1,3 +1,4 @@
+import numpy as np
 from sacred import Ingredient
 
 transforms_ingredient = Ingredient('transforms')
@@ -7,12 +8,18 @@ transforms_ingredient = Ingredient('transforms')
 def config():
     preprocessing = {
         'x1': [
-            {
-                'class_name': 'GrayScale',
-                'args': {
-                    'num_output_channels': 1
-                }
-            },
+#             {
+#                 'class_name': 'Grayscale',
+#                 'args': {
+#                     'num_output_channels': 1
+#                 }
+#             },
+#             {
+#                 'class_name': 'Unsqueeze',
+#                 'args': {
+#                     'axis': -1
+#                 }
+#             },
             {
                 'class_name': 'ToTensor',
                 'args': {}
@@ -44,7 +51,22 @@ def config():
                 }
             }
         ],
-        'joint': []
+        'joint': [
+            {
+                'class_name': 'ToPILImage',
+                'args': {}
+            },
+            {
+                'class_name': 'Resize',
+                'args': {
+                    'size': 224
+                }
+            },
+            {
+                'class_name': 'ToTensor',
+                'args': {}
+            }
+        ]
     }
 
     # TODO: apply data augmentation to joint images
@@ -66,3 +88,16 @@ class ChooseChannels:
 
     def __call__(self, img):
         return np.array(img)[:, :, self.channels]
+
+    
+class Unsqueeze:
+    """
+    Unsqueezes a numpy array at the given axis
+
+    Returns a numpy array.
+    """
+    def __init__(self, axis):
+        self.axis = axis
+
+    def __call__(self, img):
+        return np.expand_dims(img, axis=self.axis)

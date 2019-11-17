@@ -20,9 +20,8 @@ from sacred.utils import apply_backspaces_and_linefeeds
 
 from dataset import DrainDetectionDataset
 import transforms as custom_transforms
-import transforms.transforms_ingredient import transforms_ingredient
-from modules import LinearDecoder
-from modules import ClippedSRCNN
+from transforms import transforms_ingredient
+import modules
 from util import ce_loss, output
 
 EXPERIMENT_NAME = 'trainer'
@@ -36,7 +35,7 @@ def config(transforms):
     """
     Configuration for training harness.
     """
-    hypothesis_conditions = ['drain_detection', '3-channel']
+    hypothesis_conditions = ['drain_detection', 'original']
     exp_dir = path.join('experiments', *hypothesis_conditions)
 
     meta_config = {
@@ -48,13 +47,13 @@ def config(transforms):
         'checkpointing': True,
         'checkpointer_config': {
             'checkpoint_metric': {
-                'primary/detector-dataset/valid/roc_auc': 'max'
+                'drain/drain-detection-dataset/valid/roc_auc': 'max'
             }
         }
     }
 
     images_dir = '/lfs/1/gangus/repositories/pytorch-classification/catheter_detector/results/catheter_detect/test_latest/images'
-    split_dir = '/lfs/1/gangus/data/drain_detection/split/'
+    split_dir = '/lfs/1/gangus/repositories/pytorch-classification/drain_detector/data/by-patient-id'
     dataset_configs = {
         'train': {
             'class_name': 'DrainDetectionDataset',
@@ -62,9 +61,9 @@ def config(transforms):
                 'split_dir': split_dir,
                 'images_dir': images_dir,
                 'transforms': {
-                    'x1': transforms['x1']['preprocessing'] + transforms['x1']['augmentation'],
-                    'x2': transforms['x2']['preprocessing'] + transforms['x2']['augmentation'],
-                    'joint': transforms['joint']['preprocessing'] + transforms['joint']['augmentation']
+                    'x1': transforms['preprocessing']['x1'] + transforms['augmentation']['x1'],
+                    'x2': [],
+                    'joint': transforms['preprocessing']['joint'] + transforms['augmentation']['joint']
                 }
             }
         },
@@ -74,9 +73,9 @@ def config(transforms):
                 'split_dir': split_dir,
                 'images_dir': images_dir,
                 'transforms': {
-                    'x1': transforms['x1']['preprocessing'],
-                    'x2': transforms['x2']['preprocessing'],
-                    'joint': transforms['joint']['preprocessing']
+                    'x1': transforms['preprocessing']['x1'],
+                    'x2': [],
+                    'joint': transforms['preprocessing']['joint']
                 }
             }
         }
@@ -84,12 +83,12 @@ def config(transforms):
 
     dataloader_configs = {
         'train': {
-            'batch_size': 1,
+            'batch_size': 16,
             'num_workers': 8,
             'shuffle': False
         },
         'valid': {
-            'batch_size': 1,
+            'batch_size': 20,
             'num_workers': 8,
             'shuffle': True
         }
@@ -99,33 +98,35 @@ def config(transforms):
         'train': {
             'class_name': 'RandomSampler',
             'args': {
-                'num_samples': 500,
+                'num_samples': 800,
                 'replacement': True,
             }
         }
     }
 
     task_to_label_dict = {
-        'primary': 'primary',
+        'drain': 'drain',
     }
-
-    encoder_class = 'SRCNN'
+    
+    task_to_cardinality_dict = {
+        'drain': 2
+    }
+    
+    encoder_class = 'ClippedDenseNet'
     encoder_args = {
-        'input_nc': 3,
-        'output_nc': 3,
-        'ngf': 64,
-        'which_model_netG': 'srcnn',
-        'norm': 'instance',
-        'no_dropout': False,
-        'nclass': 3,
+        'pretrained': True,
+        'weights_path': 'model.pth.tar'
     }
-    encoder_weights = '/lfs/1/gangus/repositories/checkpoint/catheter_detect/latest_net_G.pth'
 
     decoder_class = "LinearDecoder"
-    decoder_args = {}
+    decoder_args = {
+        'num_layers': 2,
+        'encoding_size': 1024,
+        'dropout_p': 0.0
+    }
 
     learner_config = {
-        'n_epochs': 30,
+        'n_epochs': 50,
         'valid_split': 'valid',
         'optimizer_config': {'optimizer': 'adam', 'lr': 0.01, 'l2': 0.000},
         'lr_scheduler_config': {
@@ -167,9 +168,9 @@ class TrainingHarness(object):
     def _init_datasets(self, _log, dataset_configs):
         datasets = {}
         for split in ['train', 'valid']:
-            class_name = dataset_configs['class_name']
-            args = dataset_configs['args']
-            datasets[split] = getattr(all_datasets, class_name)(
+            class_name = dataset_configs[split]['class_name']
+            args = dataset_configs[split]['args']
+            datasets[split] = DrainDetectionDataset(
                 split_str=split,
                 **args
             )
@@ -182,7 +183,7 @@ class TrainingHarness(object):
         for split in ['train', 'valid']:
             dataloader_config = dataloader_configs[split]
             if split == 'train':
-                sampler = self._init_sampler()
+                sampler = self._init_sampler(split)
                 dataloader_config = {
                     'sampler': sampler,
                     **dataloader_config
@@ -198,7 +199,7 @@ class TrainingHarness(object):
         return dataloaders
 
     @ex.capture
-    def _init_sampler(self, _log, sampler_configs):
+    def _init_sampler(self, split, _log, sampler_configs):
         sampler_class = sampler_configs[split]['class_name']
         sampler_args = sampler_configs[split]['args']
         if sampler_class == 'WeightedRandomSampler':
@@ -213,23 +214,22 @@ class TrainingHarness(object):
         return sampler
 
     @ex.capture
-    def _init_model(self, encoder_class, encoder_args, encoder_weights,
-                          decoder_class, decoder_args, task_to_label_dict):
-        encoder_module = getattr(modules, encoder_class)(**encoder_args
-        if encoder_weights:
-            encoder_module.load_state_dict(torch.load(encoder_weights))
+    def _init_model(self, encoder_class, encoder_args,
+                          decoder_class, decoder_args, 
+                          task_to_label_dict, task_to_cardinality_dict):
+        encoder_module = getattr(modules, encoder_class)(**encoder_args)
         tasks = [
             EmmentalTask(
                 name=task_name,
                 module_pool=nn.ModuleDict(
                     {
                         f'encoder_module': encoder_module,
-                        f'decoder_module_{task_name}': getattr(modules, decoder_class)(2, **decoder_args),
+                        f'decoder_module_{task_name}': getattr(modules, decoder_class)(task_to_cardinality_dict[task_name], **decoder_args),
                     }
                 ),
                 task_flow=[
                     {
-                        'name': 'encoder_module', 'module': 'encoder_module', 'inputs': [('_input_', 'loop')]
+                        'name': 'encoder_module', 'module': 'encoder_module', 'inputs': [('_input_', 'image')]
                     },
                     {
                         'name':   f'decoder_module_{task_name}',
@@ -244,7 +244,7 @@ class TrainingHarness(object):
             )
             for task_name in task_to_label_dict.keys()
         ]
-        model = EmmentalModel(name='cow-tus-model', tasks=tasks)
+        model = EmmentalModel(name='drain-detection-model', tasks=tasks)
         return model
 
     def run(self):
