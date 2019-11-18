@@ -1,0 +1,780 @@
+INFO - catheter-detection - Running command 'main'
+INFO - catheter-detection - Started run with ID "4"
+CustomDatasetDataLoader
+dataset [Aligned Dataset of Scale RCNN] was created
+initialization method [normal]
+/lfs/1/gangus/repositories/pytorch-classification/catheter_detector/models/networks.py:19: UserWarning: nn.init.normal is now deprecated in favor of nn.init.normal_.
+  init.normal(m.weight.data, 0.0, 0.02)
+/lfs/1/gangus/repositories/pytorch-classification/catheter_detector/models/networks.py:23: UserWarning: nn.init.normal is now deprecated in favor of nn.init.normal_.
+  init.normal(m.weight.data, 1.0, 0.02)
+/lfs/1/gangus/repositories/pytorch-classification/catheter_detector/models/networks.py:24: UserWarning: nn.init.constant is now deprecated in favor of nn.init.constant_.
+  init.constant(m.bias.data, 0.0)
+---------- Networks initialized -------------
+SRCNN(
+  (blk1): Sequential(
+    (0): Conv2d(6, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+    (1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): ReLU(inplace=True)
+    (3): ResnetBlock(
+      (conv_block): Sequential(
+        (0): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (2): ReLU(inplace=True)
+        (3): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (4): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (4): ResnetBlock(
+      (conv_block): Sequential(
+        (0): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (2): ReLU(inplace=True)
+        (3): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (4): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (5): ResnetBlock(
+      (conv_block): Sequential(
+        (0): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (2): ReLU(inplace=True)
+        (3): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (4): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+  )
+  (blk2): Sequential(
+    (0): Conv2d(32, 64, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
+    (1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): ReLU(inplace=True)
+    (3): ResnetBlock(
+      (conv_block): Sequential(
+        (0): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (2): ReLU(inplace=True)
+        (3): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (4): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (4): ResnetBlock(
+      (conv_block): Sequential(
+        (0): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (2): ReLU(inplace=True)
+        (3): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (4): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (5): ResnetBlock(
+      (conv_block): Sequential(
+        (0): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (2): ReLU(inplace=True)
+        (3): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (4): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+  )
+  (blk3): Sequential(
+    (0): Conv2d(64, 128, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
+    (1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): ReLU(inplace=True)
+    (3): ResnetBlock(
+      (conv_block): Sequential(
+        (0): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (2): ReLU(inplace=True)
+        (3): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (4): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (4): ResnetBlock(
+      (conv_block): Sequential(
+        (0): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (2): ReLU(inplace=True)
+        (3): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (4): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (5): ResnetBlock(
+      (conv_block): Sequential(
+        (0): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (2): ReLU(inplace=True)
+        (3): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (4): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+  )
+  (conv_lstm): CLSTMCell(
+    (conv): Conv2d(256, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+  )
+  (blk5): Sequential(
+    (0): ResnetBlock(
+      (conv_block): Sequential(
+        (0): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (2): ReLU(inplace=True)
+        (3): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (4): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (1): ResnetBlock(
+      (conv_block): Sequential(
+        (0): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (2): ReLU(inplace=True)
+        (3): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (4): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (2): ResnetBlock(
+      (conv_block): Sequential(
+        (0): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (2): ReLU(inplace=True)
+        (3): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (4): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (3): ConvTranspose2d(128, 64, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
+    (4): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (5): ReLU(inplace=True)
+  )
+  (blk6): Sequential(
+    (0): ResnetBlock(
+      (conv_block): Sequential(
+        (0): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (2): ReLU(inplace=True)
+        (3): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (4): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (1): ResnetBlock(
+      (conv_block): Sequential(
+        (0): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (2): ReLU(inplace=True)
+        (3): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (4): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (2): ResnetBlock(
+      (conv_block): Sequential(
+        (0): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (2): ReLU(inplace=True)
+        (3): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (4): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (3): ConvTranspose2d(128, 32, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
+    (4): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (5): ReLU(inplace=True)
+  )
+  (blk7): Sequential(
+    (0): ResnetBlock(
+      (conv_block): Sequential(
+        (0): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (2): ReLU(inplace=True)
+        (3): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (4): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (1): ResnetBlock(
+      (conv_block): Sequential(
+        (0): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (2): ReLU(inplace=True)
+        (3): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (4): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (2): ResnetBlock(
+      (conv_block): Sequential(
+        (0): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (2): ReLU(inplace=True)
+        (3): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (4): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      )
+    )
+    (3): ConvTranspose2d(64, 3, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+  )
+  (up2h): ConvTranspose2d(128, 128, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
+  (up2c): ConvTranspose2d(128, 128, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
+  (up2i): ConvTranspose2d(3, 3, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
+)
+Total number of parameters: 5227024
+-----------------------------------------------
+WARNING - visdom - Setting up a new session...
+Exception in user code:
+------------------------------------------------------------
+Traceback (most recent call last):
+  File "/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/urllib3/connection.py", line 157, in _new_conn
+    (self._dns_host, self.port), self.timeout, **extra_kw
+  File "/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/urllib3/util/connection.py", line 84, in create_connection
+    raise err
+  File "/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/urllib3/util/connection.py", line 74, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/urllib3/connectionpool.py", line 672, in urlopen
+    chunked=chunked,
+  File "/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/urllib3/connectionpool.py", line 387, in _make_request
+    conn.request(method, url, **httplib_request_kw)
+  File "/usr/local/lib/python3.6/http/client.py", line 1239, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "/usr/local/lib/python3.6/http/client.py", line 1285, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "/usr/local/lib/python3.6/http/client.py", line 1234, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/usr/local/lib/python3.6/http/client.py", line 1026, in _send_output
+    self.send(msg)
+  File "/usr/local/lib/python3.6/http/client.py", line 964, in send
+    self.connect()
+  File "/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/urllib3/connection.py", line 184, in connect
+    conn = self._new_conn()
+  File "/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/urllib3/connection.py", line 169, in _new_conn
+    self, "Failed to establish a new connection: %s" % e
+urllib3.exceptions.NewConnectionError: <urllib3.connection.HTTPConnection object at 0x7f44a345ab70>: Failed to establish a new connection: [Errno 111] Connection refused
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/requests/adapters.py", line 449, in send
+    timeout=timeout
+  File "/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/urllib3/connectionpool.py", line 720, in urlopen
+    method, url, error=e, _pool=self, _stacktrace=sys.exc_info()[2]
+  File "/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/urllib3/util/retry.py", line 436, in increment
+    raise MaxRetryError(_pool, url, error or ResponseError(cause))
+urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host='localhost', port=8097): Max retries exceeded with url: /env/main (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f44a345ab70>: Failed to establish a new connection: [Errno 111] Connection refused',))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/visdom/__init__.py", line 711, in _send
+    data=json.dumps(msg),
+  File "/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/visdom/__init__.py", line 677, in _handle_post
+    r = self.session.post(url, data=data)
+  File "/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/requests/sessions.py", line 581, in post
+    return self.request('POST', url, data=data, json=json, **kwargs)
+  File "/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/requests/sessions.py", line 533, in request
+    resp = self.send(prep, **send_kwargs)
+  File "/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/requests/sessions.py", line 646, in send
+    r = adapter.send(request, **kwargs)
+  File "/lfs/1/gangus/repositories/pytorch-classification/.env-pytorch-classification/lib/python3.6/site-packages/requests/adapters.py", line 516, in send
+    raise ConnectionError(e, request=request)
+requests.exceptions.ConnectionError: HTTPConnectionPool(host='localhost', port=8097): Max retries exceeded with url: /env/main (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f44a345ab70>: Failed to establish a new connection: [Errno 111] Connection refused',))
+INFO - visdom - Socket refused connection, running socketless
+ERROR - visdom - [Errno 111] Connection refused
+0000: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00000118_002.png']
+0001: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00000118_003.png']
+0002: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00000118_004.png']
+0003: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00000118_005.png']
+0004: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00000118_009.png']
+0005: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00000118_010.png']
+0006: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00000118_011.png']
+0007: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00000315_001.png']
+0008: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00000376_005.png']
+0009: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00000758_002.png']
+0010: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00001006_000.png']
+0011: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00001006_001.png']
+0012: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00001006_015.png']
+0013: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00001006_017.png']
+0014: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00001006_018.png']
+0015: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00001006_019.png']
+0016: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00001006_020.png']
+0017: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00001006_021.png']
+0018: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00001006_022.png']
+0019: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00001006_024.png']
+0020: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00001771_002.png']
+0021: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00001833_003.png']
+0022: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00001833_007.png']
+0023: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00001984_003.png']
+0024: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00001984_004.png']
+0025: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00002042_001.png']
+0026: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00002042_003.png']
+0027: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00002081_006.png']
+0028: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00002146_001.png']
+0029: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00002146_002.png']
+0030: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00002146_003.png']
+0031: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00002146_007.png']
+0032: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00002275_002.png']
+0033: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00002275_003.png']
+0034: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00002275_004.png']
+0035: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00002275_005.png']
+0036: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00002275_006.png']
+0037: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00002275_007.png']
+0038: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00002275_008.png']
+0039: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00002275_009.png']
+0040: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00002275_010.png']
+0041: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00002469_004.png']
+0042: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00002469_005.png']
+0043: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00002544_001.png']
+0044: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00002544_004.png']
+0045: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00002766_001.png']
+0046: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00002766_002.png']
+0047: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00002846_001.png']
+0048: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00002846_004.png']
+0049: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00002846_005.png']
+0050: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00003005_015.png']
+0051: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00003005_017.png']
+0052: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00003066_000.png']
+0053: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00003249_000.png']
+0054: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00003348_000.png']
+0055: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00003348_001.png']
+0056: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00003348_002.png']
+0057: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00003436_003.png']
+0058: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00003510_004.png']
+0059: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00003510_016.png']
+0060: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00003570_004.png']
+0061: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00003658_006.png']
+0062: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00003658_009.png']
+0063: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00003658_010.png']
+0064: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00003916_001.png']
+0065: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00003916_002.png']
+0066: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00004088_001.png']
+0067: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00004169_000.png']
+0068: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00004340_003.png']
+0069: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00004727_000.png']
+0070: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00004727_001.png']
+0071: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00004727_003.png']
+0072: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00004728_002.png']
+0073: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00004833_017.png']
+0074: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00004850_007.png']
+0075: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00004850_010.png']
+0076: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00004917_015.png']
+0077: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00005051_003.png']
+0078: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00005388_004.png']
+0079: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00005395_005.png']
+0080: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00005395_006.png']
+0081: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00005395_007.png']
+0082: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00005395_010.png']
+0083: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00005395_011.png']
+0084: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00005520_005.png']
+0085: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00005520_006.png']
+0086: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00005520_007.png']
+0087: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00005520_008.png']
+0088: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00005539_000.png']
+0089: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00005539_001.png']
+0090: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00005539_007.png']
+0091: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00005539_009.png']
+0092: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00006142_009.png']
+0093: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00006336_006.png']
+0094: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00006453_000.png']
+0095: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00006453_001.png']
+0096: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00006648_000.png']
+0097: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00006948_019.png']
+0098: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00006948_024.png']
+0099: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00007093_004.png']
+0100: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00007121_002.png']
+0101: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00007943_001.png']
+0102: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00007943_006.png']
+0103: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00007943_012.png']
+0104: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00008168_001.png']
+0105: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00008168_002.png']
+0106: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00008168_003.png']
+0107: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00008168_004.png']
+0108: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00008168_006.png']
+0109: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00008168_008.png']
+0110: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00008168_010.png']
+0111: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00008168_013.png']
+0112: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00008304_000.png']
+0113: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00008304_001.png']
+0114: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00008402_004.png']
+0115: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00008402_005.png']
+0116: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00008473_004.png']
+0117: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00008473_005.png']
+0118: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00008864_004.png']
+0119: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00009206_001.png']
+0120: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00009227_000.png']
+0121: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00009349_012.png']
+0122: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00009349_014.png']
+0123: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00009349_015.png']
+0124: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00009349_016.png']
+0125: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00009349_017.png']
+0126: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00009349_019.png']
+0127: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00009349_020.png']
+0128: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00009349_021.png']
+0129: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00009349_024.png']
+0130: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00009349_025.png']
+0131: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00009349_026.png']
+0132: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00009349_027.png']
+0133: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00009349_028.png']
+0134: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00009403_002.png']
+0135: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00009403_004.png']
+0136: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00009403_005.png']
+0137: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00009437_003.png']
+0138: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00009437_007.png']
+0139: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00009866_001.png']
+0140: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00009866_003.png']
+0141: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00010020_003.png']
+0142: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00010069_004.png']
+0143: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00010069_005.png']
+0144: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00010123_001.png']
+0145: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00010123_002.png']
+0146: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00010123_003.png']
+0147: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00010123_004.png']
+0148: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00010698_050.png']
+0149: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00010816_000.png']
+0150: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00010840_001.png']
+0151: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011174_002.png']
+0152: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011379_000.png']
+0153: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011379_023.png']
+0154: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011379_024.png']
+0155: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011379_025.png']
+0156: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011379_029.png']
+0157: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011379_030.png']
+0158: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011379_032.png']
+0159: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011379_033.png']
+0160: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011379_034.png']
+0161: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011379_035.png']
+0162: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011379_039.png']
+0163: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011379_040.png']
+0164: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011379_041.png']
+0165: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011379_042.png']
+0166: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011379_044.png']
+0167: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011553_009.png']
+0168: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011553_010.png']
+0169: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011553_011.png']
+0170: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011553_012.png']
+0171: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011553_013.png']
+0172: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011553_014.png']
+0173: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011804_012.png']
+0174: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011804_020.png']
+0175: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011804_021.png']
+0176: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011804_022.png']
+0177: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011804_023.png']
+0178: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011804_024.png']
+0179: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011814_009.png']
+0180: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011814_010.png']
+0181: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011814_012.png']
+0182: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011814_013.png']
+0183: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011814_025.png']
+0184: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011814_026.png']
+0185: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011814_027.png']
+0186: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011814_028.png']
+0187: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011814_029.png']
+0188: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011814_030.png']
+0189: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00011873_009.png']
+0190: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00012018_018.png']
+0191: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00012057_009.png']
+0192: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00012541_000.png']
+0193: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00012834_087.png']
+0194: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00012834_089.png']
+0195: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00012834_099.png']
+0196: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00012834_147.png']
+0197: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00012875_000.png']
+0198: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00013209_000.png']
+0199: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00013209_001.png']
+0200: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00013209_002.png']
+0201: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00013209_005.png']
+0202: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00013209_006.png']
+0203: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00013209_007.png']
+0204: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00013209_008.png']
+0205: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00013209_009.png']
+0206: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00013209_011.png']
+0207: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00013209_012.png']
+0208: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00013209_013.png']
+0209: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00013209_016.png']
+0210: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00013209_017.png']
+0211: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00013209_018.png']
+0212: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00013209_019.png']
+0213: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00013209_020.png']
+0214: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00013458_002.png']
+0215: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00013774_003.png']
+0216: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00013774_004.png']
+0217: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00014174_019.png']
+0218: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00014174_020.png']
+0219: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00014458_003.png']
+0220: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00014688_010.png']
+0221: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00014822_002.png']
+0222: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00014822_003.png']
+0223: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00014822_004.png']
+0224: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00014822_024.png']
+0225: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00014822_035.png']
+0226: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00014822_036.png']
+0227: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00014822_037.png']
+0228: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00014822_038.png']
+0229: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00014822_039.png']
+0230: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00014822_040.png']
+0231: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00014822_041.png']
+0232: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00014822_042.png']
+0233: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00014822_043.png']
+0234: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00014822_044.png']
+0235: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00014822_045.png']
+0236: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00015011_000.png']
+0237: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00015214_008.png']
+0238: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00015214_009.png']
+0239: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00015214_010.png']
+0240: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00015214_011.png']
+0241: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00015214_012.png']
+0242: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00015653_005.png']
+0243: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00015653_006.png']
+0244: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00015892_001.png']
+0245: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00015892_002.png']
+0246: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00015892_003.png']
+0247: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00015892_004.png']
+0248: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00015892_005.png']
+0249: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00016002_000.png']
+0250: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00016142_022.png']
+0251: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00016142_034.png']
+0252: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00016142_035.png']
+0253: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00016142_039.png']
+0254: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00016142_040.png']
+0255: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00016142_041.png']
+0256: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00016142_042.png']
+0257: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00016142_043.png']
+0258: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00016142_044.png']
+0259: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00016142_045.png']
+0260: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00016142_049.png']
+0261: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00016142_052.png']
+0262: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00016422_003.png']
+0263: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00016422_004.png']
+0264: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00016422_005.png']
+0265: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00016422_006.png']
+0266: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00016422_007.png']
+0267: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00016623_002.png']
+0268: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00016623_005.png']
+0269: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00016807_004.png']
+0270: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00016807_005.png']
+0271: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00016807_015.png']
+0272: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00016807_016.png']
+0273: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00016807_017.png']
+0274: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00016807_018.png']
+0275: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00016807_019.png']
+0276: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00016807_020.png']
+0277: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00017137_004.png']
+0278: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00017137_005.png']
+0279: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00017137_008.png']
+0280: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00017137_016.png']
+0281: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00017243_000.png']
+0282: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00017243_001.png']
+0283: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00017243_002.png']
+0284: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00017243_010.png']
+0285: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00017243_011.png']
+0286: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00017369_002.png']
+0287: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00017369_004.png']
+0288: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00017369_005.png']
+0289: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00017369_006.png']
+0290: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00017369_007.png']
+0291: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00017467_003.png']
+0292: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00017467_018.png']
+0293: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00017467_019.png']
+0294: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00017645_009.png']
+0295: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00017645_018.png']
+0296: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00017645_019.png']
+0297: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00017645_020.png']
+0298: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00017801_004.png']
+0299: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00017801_005.png']
+0300: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00017801_006.png']
+0301: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00018724_039.png']
+0302: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00018724_040.png']
+0303: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00019027_005.png']
+0304: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00019222_006.png']
+0305: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00019222_007.png']
+0306: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00019730_000.png']
+0307: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00019730_001.png']
+0308: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00019730_002.png']
+0309: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00019766_012.png']
+0310: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00019766_013.png']
+0311: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00019767_009.png']
+0312: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00019785_016.png']
+0313: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00019785_017.png']
+0314: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00019785_018.png']
+0315: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00020184_006.png']
+0316: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00020184_010.png']
+0317: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00020195_005.png']
+0318: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00020195_006.png']
+0319: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00020195_007.png']
+0320: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00020195_008.png']
+0321: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00020195_009.png']
+0322: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00020195_010.png']
+0323: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00020195_011.png']
+0324: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00020195_013.png']
+0325: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00020195_017.png']
+0326: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00020195_019.png']
+0327: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00020455_003.png']
+0328: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00020455_004.png']
+0329: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00020772_005.png']
+0330: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00020772_010.png']
+0331: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00020772_011.png']
+0332: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00020772_012.png']
+0333: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00020772_014.png']
+0334: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00020779_000.png']
+0335: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00020779_001.png']
+0336: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00020809_003.png']
+0337: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00020809_005.png']
+0338: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00020857_003.png']
+0339: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00020857_004.png']
+0340: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00020857_005.png']
+0341: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00021649_001.png']
+0342: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00021651_001.png']
+0343: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00021651_002.png']
+0344: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00021651_003.png']
+0345: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00021651_004.png']
+0346: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00021651_006.png']
+0347: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00021651_007.png']
+0348: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00021651_011.png']
+0349: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00021651_013.png']
+0350: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00021818_018.png']
+0351: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00022141_000.png']
+0352: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00022141_001.png']
+0353: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00022141_002.png']
+0354: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00022141_009.png']
+0355: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00022141_010.png']
+0356: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00022141_012.png']
+0357: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00022141_013.png']
+0358: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00022141_014.png']
+0359: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00022141_015.png']
+0360: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00022141_016.png']
+0361: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00022141_017.png']
+0362: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00022141_018.png']
+0363: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00022141_019.png']
+0364: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00022141_020.png']
+0365: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00022141_021.png']
+0366: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00022141_022.png']
+0367: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00022141_023.png']
+0368: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00022141_024.png']
+0369: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00022141_025.png']
+0370: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00022141_027.png']
+0371: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00022141_029.png']
+0372: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00022141_030.png']
+0373: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00022141_031.png']
+0374: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00022402_001.png']
+0375: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00022672_010.png']
+0376: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00022672_011.png']
+0377: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00022764_004.png']
+0378: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00022957_005.png']
+0379: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00023111_016.png']
+0380: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025168_002.png']
+0381: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025168_003.png']
+0382: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025168_004.png']
+0383: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025368_014.png']
+0384: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025368_016.png']
+0385: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025368_018.png']
+0386: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025368_019.png']
+0387: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025368_020.png']
+0388: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025368_021.png']
+0389: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025368_022.png']
+0390: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025368_027.png']
+0391: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025368_031.png']
+0392: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025368_032.png']
+0393: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025368_033.png']
+0394: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025612_002.png']
+0395: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025612_005.png']
+0396: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025612_007.png']
+0397: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025612_009.png']
+0398: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025612_010.png']
+0399: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025612_011.png']
+0400: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025696_000.png']
+0401: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025696_001.png']
+0402: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_003.png']
+0403: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_004.png']
+0404: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_005.png']
+0405: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_006.png']
+0406: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_007.png']
+0407: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_008.png']
+0408: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_009.png']
+0409: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_010.png']
+0410: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_011.png']
+0411: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_012.png']
+0412: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_013.png']
+0413: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_014.png']
+0414: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_017.png']
+0415: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_018.png']
+0416: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_019.png']
+0417: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_020.png']
+0418: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_021.png']
+0419: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_022.png']
+0420: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_023.png']
+0421: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_024.png']
+0422: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_025.png']
+0423: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_026.png']
+0424: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_028.png']
+0425: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_029.png']
+0426: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_033.png']
+0427: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_035.png']
+0428: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_038.png']
+0429: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_040.png']
+0430: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00025954_041.png']
+0431: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00026034_000.png']
+0432: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00026641_007.png']
+0433: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00026641_008.png']
+0434: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00026793_003.png']
+0435: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00026793_004.png']
+0436: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00026793_006.png']
+0437: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00026793_008.png']
+0438: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00026912_000.png']
+0439: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00027142_008.png']
+0440: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00027142_009.png']
+0441: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00027357_000.png']
+0442: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00027357_009.png']
+0443: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00027465_003.png']
+0444: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00027465_004.png']
+0445: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00027676_005.png']
+0446: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00027676_007.png']
+0447: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00027676_008.png']
+0448: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00027726_035.png']
+0449: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00027726_036.png']
+0450: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00027726_044.png']
+0451: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00028065_000.png']
+0452: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00028094_001.png']
+0453: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00028640_004.png']
+0454: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029129_004.png']
+0455: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029129_005.png']
+0456: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029235_001.png']
+0457: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029235_002.png']
+0458: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029235_005.png']
+0459: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029235_006.png']
+0460: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029235_007.png']
+0461: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029532_007.png']
+0462: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029570_001.png']
+0463: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029570_003.png']
+0464: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029950_002.png']
+0465: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029950_003.png']
+0466: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029950_005.png']
+0467: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029950_006.png']
+0468: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029950_007.png']
+0469: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029950_009.png']
+0470: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029950_010.png']
+0471: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029950_011.png']
+0472: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029950_013.png']
+0473: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029950_015.png']
+0474: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029950_016.png']
+0475: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029950_017.png']
+0476: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029950_018.png']
+0477: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029950_020.png']
+0478: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029998_002.png']
+0479: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029998_003.png']
+0480: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029998_005.png']
+0481: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029998_006.png']
+0482: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029998_009.png']
+0483: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029998_012.png']
+0484: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00029998_013.png']
+0485: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00030606_001.png']
+0486: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00030606_005.png']
+0487: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00030606_006.png']
+0488: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00030606_007.png']
+0489: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00030606_009.png']
+0490: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00030606_010.png']
+0491: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00030606_013.png']
+0492: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00030606_014.png']
+0493: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00030637_002.png']
+0494: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00030637_003.png']
+0495: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00030637_006.png']
+0496: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00030637_007.png']
+0497: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00030637_008.png']
+0498: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00030637_009.png']
+0499: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00030637_010.png']
+0500: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00030637_011.png']
+0501: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00030637_012.png']
+0502: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00030679_002.png']
+0503: process image... ['/lfs/1/jdunnmon/data/nih/images/images/00030679_003.png']

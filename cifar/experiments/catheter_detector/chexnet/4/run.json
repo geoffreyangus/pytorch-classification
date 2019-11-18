@@ -1,0 +1,152 @@
+{
+  "artifacts": [],
+  "command": "main",
+  "experiment": {
+    "base_dir": "/lfs/1/gangus/repositories/pytorch-classification/catheter_detector",
+    "dependencies": [
+      "numpy==1.17.4",
+      "sacred==0.8.0",
+      "torch==1.3.1",
+      "torchvision==0.4.2",
+      "tqdm==4.38.0"
+    ],
+    "mainfile": "catheter_detector_chexnet.py",
+    "name": "catheter-detection",
+    "repositories": [
+      {
+        "commit": "fd8bed9a07aaffa6a34d9b506b9056e7995d8465",
+        "dirty": true,
+        "url": "https://github.com/geoffreyangus/pytorch-classification.git"
+      },
+      {
+        "commit": "fd8bed9a07aaffa6a34d9b506b9056e7995d8465",
+        "dirty": true,
+        "url": "https://github.com/geoffreyangus/pytorch-classification.git"
+      },
+      {
+        "commit": "fd8bed9a07aaffa6a34d9b506b9056e7995d8465",
+        "dirty": true,
+        "url": "https://github.com/geoffreyangus/pytorch-classification.git"
+      },
+      {
+        "commit": "fd8bed9a07aaffa6a34d9b506b9056e7995d8465",
+        "dirty": true,
+        "url": "https://github.com/geoffreyangus/pytorch-classification.git"
+      },
+      {
+        "commit": "fd8bed9a07aaffa6a34d9b506b9056e7995d8465",
+        "dirty": true,
+        "url": "https://github.com/geoffreyangus/pytorch-classification.git"
+      },
+      {
+        "commit": "fd8bed9a07aaffa6a34d9b506b9056e7995d8465",
+        "dirty": true,
+        "url": "https://github.com/geoffreyangus/pytorch-classification.git"
+      },
+      {
+        "commit": "fd8bed9a07aaffa6a34d9b506b9056e7995d8465",
+        "dirty": true,
+        "url": "https://github.com/geoffreyangus/pytorch-classification.git"
+      },
+      {
+        "commit": "fd8bed9a07aaffa6a34d9b506b9056e7995d8465",
+        "dirty": true,
+        "url": "https://github.com/geoffreyangus/pytorch-classification.git"
+      }
+    ],
+    "sources": [
+      [
+        "catheter_detector_chexnet.py",
+        "_sources/catheter_detector_chexnet_9a036affceb9c849ec346e5753957e32.py"
+      ],
+      [
+        "dataset/__init__.py",
+        "_sources/__init___d41d8cd98f00b204e9800998ecf8427e.py"
+      ],
+      [
+        "dataset/data_loader.py",
+        "_sources/data_loader_ba57b8c76102f4971e74820a3f4bdf9a.py"
+      ],
+      [
+        "models/__init__.py",
+        "_sources/__init___d41d8cd98f00b204e9800998ecf8427e.py"
+      ],
+      [
+        "models/scale_rcnn.py",
+        "_sources/scale_rcnn_5d30a600cd256ead594e3476be4219a6.py"
+      ],
+      [
+        "util/__init__.py",
+        "_sources/__init___d41d8cd98f00b204e9800998ecf8427e.py"
+      ],
+      [
+        "util/html.py",
+        "_sources/html_4ae8b6474b87342069e0cc4615e8e811.py"
+      ],
+      [
+        "util/visualizer.py",
+        "_sources/visualizer_8f7d7523394725966025009b627e87a8.py"
+      ]
+    ]
+  },
+  "heartbeat": "2019-11-15T19:23:19.148259",
+  "host": {
+    "ENV": {},
+    "cpu": "Intel(R) Xeon(R) CPU E5-2690 v4 @ 2.60GHz",
+    "gpus": {
+      "driver_version": "430.26",
+      "gpus": [
+        {
+          "model": "Tesla P100-PCIE-16GB",
+          "persistence_mode": true,
+          "total_memory": 16280
+        }
+      ]
+    },
+    "hostname": "dawn5.stanford.edu",
+    "os": [
+      "Linux",
+      "Linux-4.4.0-124-generic-x86_64-with-debian-stretch-sid"
+    ],
+    "python_version": "3.6.7"
+  },
+  "meta": {
+    "command": "main",
+    "options": {
+      "--beat-interval": null,
+      "--capture": null,
+      "--comment": null,
+      "--debug": false,
+      "--enforce_clean": false,
+      "--file_storage": null,
+      "--force": false,
+      "--help": false,
+      "--loglevel": null,
+      "--mongo_db": null,
+      "--name": null,
+      "--pdb": false,
+      "--print-config": false,
+      "--priority": null,
+      "--queue": false,
+      "--s3": null,
+      "--sql": null,
+      "--tiny_db": null,
+      "--unobserve": false,
+      "COMMAND": null,
+      "UPDATE": [
+        "name=catheter_detect",
+        "phase=test",
+        "loadSize=480",
+        "sourceoftest=external",
+        "use_annot=False"
+      ],
+      "help": false,
+      "with": true
+    }
+  },
+  "resources": [],
+  "result": null,
+  "start_time": "2019-11-15T19:19:53.800675",
+  "status": "COMPLETED",
+  "stop_time": "2019-11-15T19:23:19.145327"
+}

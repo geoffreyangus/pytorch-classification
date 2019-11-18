@@ -33,12 +33,12 @@ def config():
             }
         ],
         'x2': [
-            {
-                'class_name': 'ChooseChannels',
-                'args': {
-                    'channels': [1, 2]
-                }
-            },
+#             {
+#                 'class_name': 'ChooseChannels',
+#                 'args': {
+#                     'channels': [1, 2]
+#                 }
+#             },
             {
                 'class_name': 'ToTensor',
                 'args': {}
@@ -51,15 +51,24 @@ def config():
                 }
             }
         ],
+        'joint': []
+    }
+
+    # TODO: apply data augmentation to joint images
+    augmentation = {
+        'x1': [],
+        'x2': [],
         'joint': [
             {
                 'class_name': 'ToPILImage',
                 'args': {}
             },
             {
-                'class_name': 'Resize',
+                'class_name': 'RandomAffine',
                 'args': {
-                    'size': 224
+                    'degrees': 60,
+                    'translate': (0.1, 0.1),
+                    'scale': (0.75, 1.25),
                 }
             },
             {
@@ -67,13 +76,6 @@ def config():
                 'args': {}
             }
         ]
-    }
-
-    # TODO: apply data augmentation to joint images
-    augmentation = {
-        'x1': [],
-        'x2': [],
-        'joint': []
     }
 
 
