@@ -35,9 +35,29 @@ def config(transforms):
     """
     Configuration for training harness.
     """
-    hypothesis_conditions = ['drain_detection', 'original']
+    cxr_only = True
+    pretrain_imagenet = False
+    pretrain_chexnet = False
+    assert not (pretrain_imagenet and pretrain_chexnet), \
+        'pretrain_imagenet and pretrain_chexnet are mutually exclusive'
+    
+    hypothesis_conditions = ['drain_detection']
+    
+    # first hypothesis class
+    if cxr_only:
+        hypothesis_conditions.append('cxr_only')
+    else:
+        hypothesis_conditions.append('cxr_seg')
+    
+    # second hypothesis class
+    if pretrain_imagenet:
+        hypothesis_conditions.append('pretrain_imagenet')
+    elif pretrain_chexnet:
+        hypothesis_conditions.append('pretrain_chexnet')
+    else:
+        hypothesis_conditions.append('no_pretrain')
+        
     exp_dir = path.join('experiments', *hypothesis_conditions)
-
     meta_config = {
         'device': 0
     }
@@ -62,9 +82,10 @@ def config(transforms):
                 'images_dir': images_dir,
                 'transforms': {
                     'x1': transforms['preprocessing']['x1'] + transforms['augmentation']['x1'],
-                    'x2': [],
+                    'x2': transforms['preprocessing']['x2'] + transforms['augmentation']['x2'],
                     'joint': transforms['preprocessing']['joint'] + transforms['augmentation']['joint']
-                }
+                },
+                'cxr_only': cxr_only
             }
         },
         'valid': {
@@ -74,9 +95,10 @@ def config(transforms):
                 'images_dir': images_dir,
                 'transforms': {
                     'x1': transforms['preprocessing']['x1'],
-                    'x2': [],
+                    'x2': transforms['preprocessing']['x2'],
                     'joint': transforms['preprocessing']['joint']
-                }
+                },
+                'cxr_only': cxr_only
             }
         }
     }
@@ -114,8 +136,8 @@ def config(transforms):
     
     encoder_class = 'ClippedDenseNet'
     encoder_args = {
-        'pretrained': True,
-        'weights_path': 'model.pth.tar'
+        'pretrained': True if pretrain_imagenet else False,
+        'weights_path': 'model.pth.tar' if pretrain_chexnet else False
     }
 
     decoder_class = "LinearDecoder"
@@ -126,7 +148,7 @@ def config(transforms):
     }
 
     learner_config = {
-        'n_epochs': 50,
+        'n_epochs': 100,
         'valid_split': 'valid',
         'optimizer_config': {'optimizer': 'adam', 'lr': 0.01, 'l2': 0.000},
         'lr_scheduler_config': {
