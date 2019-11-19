@@ -183,7 +183,7 @@ class TrainingHarness(object):
         self.model = self._init_model()
 
     @ex.capture
-    def _init_meta(self, _seed, exp_dir, meta_config, learner_config, logging_config):
+    def _init_meta(self, _log, _seed, exp_dir, meta_config, learner_config, logging_config):
         emmental.init(path.join(exp_dir, '_emmental_logs'))
         Meta.update_config(
             config={

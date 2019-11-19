@@ -11,7 +11,7 @@ def config():
 
     preprocessing = [
         {
-            'class_name': 'Scale',
+            'class_name': 'Resize',
             'args': {
                 'size': 224
             }
@@ -25,7 +25,7 @@ def config():
         {
             'class_name': 'ToTensor',
             'args': {}
-        }
+        },
         {
             'class_name': 'Normalize',
             'args': {

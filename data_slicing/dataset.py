@@ -37,7 +37,7 @@ class CheXNetDataset(EmmentalDataset):
         self.seed = seed
 
         # can limit to sample, useful for testing
-        # if split == "train" or split =="val": sample=500
+        # e.g. if split == "train" or split =="val": sample=500
         if sample > 0 and sample < len(self.df):
             self.df = self.df.sample(sample, random_state=self.seed)
 
@@ -93,6 +93,7 @@ class CheXNetDataset(EmmentalDataset):
                 Y_dict[label].append(
                     self.df[label].iloc[idx].astype("int") + 1)
 
+        print(Y_dict.keys())
         for label in self.PRED_LABEL:
             Y_dict[label] = torch.from_numpy(np.array(Y_dict[label]))
 
@@ -109,7 +110,8 @@ class CheXNetDataset(EmmentalDataset):
         if self.transforms:
             image = self.transforms(image)
 
-        x_dict = {"image": image}
+        x_dict = {name: types[index] for name, types in self.X_dict.items()}
+        x_dict["image"] = image
         y_dict = {name: label[index] for name, label in self.Y_dict.items()}
 
         return x_dict, y_dict
