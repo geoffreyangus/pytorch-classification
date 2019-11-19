@@ -184,10 +184,14 @@ class TrainingHarness(object):
 
     @ex.capture
     def _init_meta(self, _seed, exp_dir, meta_config, learner_config, logging_config):
+        print(ex.get_default_options())
+        exit()
+        is_observed = False
+
         emmental.init(path.join(exp_dir, '_emmental_logs'))
         Meta.update_config(
             config={
-                'meta_config': {**meta_config, 'seed': _seed},
+                'meta_config': {**meta_config, 'verbose': is_observed, 'seed': _seed},
                 'model_config': {'device': meta_config['device']},
                 'learner_config': learner_config,
                 'logging_config': logging_config
