@@ -37,7 +37,7 @@ def config(transforms):
     Configuration for training harness.
     """
     cxr_only = True
-    pretrain_imagenet = False
+    pretrain_imagenet = True
     pretrain_chexnet = False
     data_slicing = False
 
@@ -117,7 +117,7 @@ def config(transforms):
                 'add_binary_triage_label': False
             }
         },
-        'valid': {
+        'val': {
             'class_name': 'CheXNetDataset',
             'args': {
                 'path_to_images': path_to_images,
@@ -137,7 +137,7 @@ def config(transforms):
             'num_workers': 8,
             'shuffle': False
         },
-        'valid': {
+        'val': {
             'batch_size': 64,
             'num_workers': 8,
             'shuffle': True
@@ -145,7 +145,7 @@ def config(transforms):
     }
     sampler_configs = {}
 
-    encoder_class = 'DenseNet'
+    encoder_class = 'ClippedDenseNet'
     encoder_args = {
         'pretrained': True if pretrain_imagenet else False,
         'weights_path': 'model.pth.tar' if pretrain_chexnet else False
@@ -183,12 +183,23 @@ class TrainingHarness(object):
         self.model = self._init_model()
 
     @ex.capture
-    def _init_meta(self, _log, _seed, exp_dir, meta_config, learner_config, logging_config):
+    def _init_meta(self, _run, _log, _seed, exp_dir, meta_config, learner_config, logging_config):
+        is_unobserved = _run.meta_info['options']['--unobserve'] 
+        
+        # only if 'checkpointing' is defined, True, and the experiment is observed
+        logging_config = dict(logging_config)
+        logging_config['checkpointing'] = logging_config.get('checkpointing', False) and not is_unobserved
+        
         emmental.init(path.join(exp_dir, '_emmental_logs'))
         Meta.update_config(
             config={
-                'meta_config': {**meta_config, 'seed': _seed},
-                'model_config': {'device': meta_config['device']},
+                'meta_config': {
+                    **meta_config, 
+                    'seed': _seed,
+                },
+                'model_config': {
+                    'device': meta_config['device']
+                },
                 'learner_config': learner_config,
                 'logging_config': logging_config
             }
@@ -199,7 +210,7 @@ class TrainingHarness(object):
     @ex.capture
     def _init_datasets(self, _log, dataset_configs):
         datasets = {}
-        for split in ['train', 'valid']:
+        for split in dataset_configs.keys():
             class_name = dataset_configs[split]['class_name']
             args = dataset_configs[split]['args']
             datasets[split] = getattr(all_datasets, class_name)(
@@ -213,7 +224,7 @@ class TrainingHarness(object):
     @ex.capture
     def _init_dataloaders(self, _log, dataloader_configs, task_to_label_dict):
         dataloaders = []
-        for split in ['train', 'valid']:
+        for split in dataloader_configs.keys():
             dataloader_config = dataloader_configs[split]
             dataloader_config = {
                 'sampler': self._init_sampler(split),
@@ -254,7 +265,7 @@ class TrainingHarness(object):
         return sampler
 
     @ex.capture
-    def _init_model(self, encoder_class, encoder_args,
+    def _init_model(self, _log, encoder_class, encoder_args,
                     decoder_class, decoder_args,
                     task_to_label_dict, task_to_cardinality_dict):
         encoder_module = getattr(modules, encoder_class)(**encoder_args)
@@ -289,7 +300,8 @@ class TrainingHarness(object):
         _log.info(f'Model initalized.')
         return model
 
-    def run(self):
+    @ex.capture
+    def run(self, _log):
         learner = EmmentalLearner()
         _log.info(f'Starting training.')
         learner.learn(self.model, self.dataloaders)
