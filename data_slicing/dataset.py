@@ -91,7 +91,7 @@ class CheXNetDataset(EmmentalDataset):
                     Y_dict[label] = []
                 # +1 for 1 index
                 Y_dict[label].append(
-                    self.df[label].iloc[idx].astype("int") + 1)
+                    self.df[label].iloc[idx].astype("int"))
 
         print(Y_dict.keys())
         for label in self.PRED_LABEL:
