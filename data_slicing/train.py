@@ -10,6 +10,7 @@ from emmental.learner import EmmentalLearner
 from emmental.model import EmmentalModel
 from emmental.scorer import Scorer
 from emmental.task import EmmentalTask
+
 import torch
 import torch.nn as nn
 import torch.utils.data as torch_data
@@ -18,11 +19,11 @@ from sacred import Experiment
 from sacred.observers import FileStorageObserver
 from sacred.utils import apply_backspaces_and_linefeeds
 
-from dataset import DrainDetectionDataset
+import dataset as all_datasets
 import transforms as custom_transforms
 from transforms import transforms_ingredient
 import modules
-from util import ce_loss, output
+from util import ce_loss, output, get_sample_weights
 
 EXPERIMENT_NAME = 'trainer'
 ex = Experiment(EXPERIMENT_NAME, ingredients=[transforms_ingredient])
@@ -38,18 +39,32 @@ def config(transforms):
     cxr_only = True
     pretrain_imagenet = False
     pretrain_chexnet = False
+    data_slicing = False
+
     assert not (pretrain_imagenet and pretrain_chexnet), \
         'pretrain_imagenet and pretrain_chexnet are mutually exclusive'
 
-    hypothesis_conditions = ['drain_detection']
+    assert cxr_only, \
+        'CXR+segmentation input not yet implemented'
 
-    # first hypothesis class
+    assert not data_slicing, \
+        'data slicing model not yet implemented'
+
+    hypothesis_conditions = []
+
+    # data slicing model or not
+    if data_slicing:
+        hypothesis_conditions.append('data_slicing')
+    else:
+        hypothesis_conditions.append('baseline')
+
+    # feed in CXR as input or CXR+Segmentation
     if cxr_only:
         hypothesis_conditions.append('cxr_only')
     else:
         hypothesis_conditions.append('cxr_seg')
 
-    # second hypothesis class
+    # pretrain model with ImageNet, CheXNet, or none
     if pretrain_imagenet:
         hypothesis_conditions.append('pretrain_imagenet')
     elif pretrain_chexnet:
@@ -58,47 +73,60 @@ def config(transforms):
         hypothesis_conditions.append('no_pretrain')
 
     exp_dir = path.join('experiments', *hypothesis_conditions)
+
+    tasks = [
+        "Atelectasis",
+        "Cardiomegaly",
+        "Effusion",
+        "Infiltration",
+        "Mass",
+        "Nodule",
+        "Pneumonia",
+        "Pneumothorax",
+        "Consolidation",
+        "Edema",
+        "Emphysema",
+        "Fibrosis",
+        "Pleural_Thickening",
+        "Hernia",
+    ]
+    task_to_label_dict = {t: t for t in tasks}
+    task_to_cardinality_dict = {t: 2 for t in tasks}
+
     meta_config = {
         'device': 0
     }
 
     logging_config = {
-        'evaluation_freq': 1,
-        'checkpointing': True,
-        'checkpointer_config': {
-            'checkpoint_metric': {
-                'drain/drain-detection-dataset/valid/roc_auc': 'max'
-            }
-        }
+        'evaluation_freq': 4000,
+        'checkpointing': False,
     }
 
-    images_dir = '/lfs/1/gangus/repositories/pytorch-classification/catheter_detector/results/catheter_detect/test_latest/images'
-    split_dir = '/lfs/1/gangus/repositories/pytorch-classification/drain_detector/data/by-patient-id'
+    path_to_images = '/dfs/scratch1/senwu/mmtl/emmental-tutorials/chexnet/data/images'
+    path_to_labels = '/dfs/scratch1/senwu/mmtl/emmental-tutorials/chexnet/data/nih_labels.csv'
     dataset_configs = {
         'train': {
-            'class_name': 'DrainDetectionDataset',
+            'class_name': 'CheXNetDataset',
             'args': {
-                'split_dir': split_dir,
-                'images_dir': images_dir,
-                'transforms': {
-                    'x1': transforms['preprocessing']['x1'] + transforms['augmentation']['x1'],
-                    'x2': transforms['preprocessing']['x2'] + transforms['augmentation']['x2'],
-                    'joint': transforms['preprocessing']['joint'] + transforms['augmentation']['joint']
-                },
-                'cxr_only': cxr_only
+                'path_to_images': path_to_images,
+                'path_to_labels': path_to_labels,
+                'sample': 0,
+                'seed': 1701,
+                'finding': 'any',
+                'transforms': transforms['augmentation'] + transforms['preprocessing'],
+                'add_binary_triage_label': False
             }
         },
         'valid': {
-            'class_name': 'DrainDetectionDataset',
+            'class_name': 'CheXNetDataset',
             'args': {
-                'split_dir': split_dir,
-                'images_dir': images_dir,
-                'transforms': {
-                    'x1': transforms['preprocessing']['x1'],
-                    'x2': transforms['preprocessing']['x2'],
-                    'joint': transforms['preprocessing']['joint']
-                },
-                'cxr_only': cxr_only
+                'path_to_images': path_to_images,
+                'path_to_labels': path_to_labels,
+                'sample': 0,
+                'seed': 1701,
+                'finding': 'any',
+                'transforms': transforms['preprocessing'],
+                'add_binary_triage_label': False
             }
         }
     }
@@ -110,31 +138,14 @@ def config(transforms):
             'shuffle': False
         },
         'valid': {
-            'batch_size': 20,
+            'batch_size': 64,
             'num_workers': 8,
             'shuffle': True
         }
     }
+    sampler_configs = {}
 
-    sampler_configs = {
-        'train': {
-            'class_name': 'RandomSampler',
-            'args': {
-                'num_samples': 800,
-                'replacement': True,
-            }
-        }
-    }
-
-    task_to_label_dict = {
-        'drain': 'drain',
-    }
-
-    task_to_cardinality_dict = {
-        'drain': 2
-    }
-
-    encoder_class = 'ClippedDenseNet'
+    encoder_class = 'DenseNet'
     encoder_args = {
         'pretrained': True if pretrain_imagenet else False,
         'weights_path': 'model.pth.tar' if pretrain_chexnet else False
@@ -142,23 +153,20 @@ def config(transforms):
 
     decoder_class = "LinearDecoder"
     decoder_args = {
-        'num_layers': 2,
+        'num_layers': 1,
         'encoding_size': 1024,
         'dropout_p': 0.0
     }
 
     learner_config = {
-        'n_epochs': 100,
-        'valid_split': 'valid',
-        'optimizer_config': {'optimizer': 'adam', 'lr': 0.01, 'l2': 0.000},
+        'n_epochs': 20,
+        'valid_split': 'val',
+        'optimizer_config': {'optimizer': 'sgd', 'lr': 0.001, 'l2': 0.000},
         'lr_scheduler_config': {
             'warmup_steps': None,
             'warmup_unit': 'batch',
-            'lr_scheduler': 'step',
-            'step_config': {
-                'step_size': 6,
-                'gamma': 0.5
-            }
+            "lr_scheduler": "linear",
+            "min_lr": 1e-6,
         },
     }
 
@@ -185,6 +193,8 @@ class TrainingHarness(object):
                 'logging_config': logging_config
             }
         )
+        ex.info.update({'emmental_log_path': Meta.log_path})
+        _log.info(f'emmental_log_path set to {Meta.log_path}')
 
     @ex.capture
     def _init_datasets(self, _log, dataset_configs):
@@ -192,8 +202,9 @@ class TrainingHarness(object):
         for split in ['train', 'valid']:
             class_name = dataset_configs[split]['class_name']
             args = dataset_configs[split]['args']
-            datasets[split] = DrainDetectionDataset(
-                split_str=split,
+            datasets[split] = getattr(all_datasets, class_name)(
+                name=class_name,
+                split=split,
                 **args
             )
             _log.info(f'Loaded {split} split.')
@@ -204,12 +215,10 @@ class TrainingHarness(object):
         dataloaders = []
         for split in ['train', 'valid']:
             dataloader_config = dataloader_configs[split]
-            if split == 'train':
-                sampler = self._init_sampler(split)
-                dataloader_config = {
-                    'sampler': sampler,
-                    **dataloader_config
-                }
+            dataloader_config = {
+                'sampler': self._init_sampler(split),
+                **dataloader_config
+            }
             dl = EmmentalDataLoader(
                 task_to_label_dict=task_to_label_dict,
                 dataset=self.datasets[split],
@@ -222,23 +231,32 @@ class TrainingHarness(object):
 
     @ex.capture
     def _init_sampler(self, split, _log, sampler_configs):
-        sampler_class = sampler_configs[split]['class_name']
-        sampler_args = sampler_configs[split]['args']
-        if sampler_class == 'WeightedRandomSampler':
-            weights = get_sample_weights(
-                self.datasets[split], sampler_args['weight_task'], sampler_args['class_probs'])
-            sampler = getattr(torch_data, sampler_class)(
-                weights=weights, num_samples=sampler_args['num_samples'], replacement=sampler_args['replacement'])
+        sampler = None
+        if split in sampler_configs:
+            sampler_class = sampler_configs[split]['class_name']
+            sampler_args = sampler_configs[split]['args']
+            if sampler_class == 'WeightedRandomSampler':
+                weights = get_sample_weights(
+                    self.datasets[split], sampler_args['weight_task'], sampler_args['class_probs'])
+                sampler = getattr(torch_data, sampler_class)(
+                    weights=weights, num_samples=sampler_args['num_samples'], replacement=sampler_args['replacement'])
+            elif sampler_class == 'RandomSampler':
+                sampler = getattr(torch_data, sampler_class)(
+                    data_source=self.datasets[split], **sampler_args)
+            elif sampler_class != None:
+                raise ValueError(
+                    f'sampler_class {sampler_class} not recognized')
+
+        if sampler:
+            _log.info(f'Built sampler {sampler_class}.')
         else:
-            sampler = getattr(torch_data, sampler_class)(
-                data_source=self.datasets[split], **sampler_args)
-        _log.info(f'Built sampler {sampler_class}.')
+            _log.info(f'No sampler configured for {split} split.')
         return sampler
 
     @ex.capture
     def _init_model(self, encoder_class, encoder_args,
-                          decoder_class, decoder_args,
-                          task_to_label_dict, task_to_cardinality_dict):
+                    decoder_class, decoder_args,
+                    task_to_label_dict, task_to_cardinality_dict):
         encoder_module = getattr(modules, encoder_class)(**encoder_args)
         tasks = [
             EmmentalTask(
@@ -262,15 +280,18 @@ class TrainingHarness(object):
                 loss_func=partial(ce_loss, task_name),
                 output_func=partial(output, task_name),
                 scorer=Scorer(
-                    metrics=['accuracy', 'roc_auc', 'precision', 'recall', 'f1']),
+                    metrics=['accuracy', 'roc_auc']),
             )
             for task_name in task_to_label_dict.keys()
         ]
-        model = EmmentalModel(name='drain-detection-model', tasks=tasks)
+        model = EmmentalModel(name='CheXNet', tasks=tasks)
+        print(model)
+        _log.info(f'Model initalized.')
         return model
 
     def run(self):
         learner = EmmentalLearner()
+        _log.info(f'Starting training.')
         learner.learn(self.model, self.dataloaders)
 
 
