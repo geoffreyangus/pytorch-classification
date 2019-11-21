@@ -39,7 +39,7 @@ def config(transforms):
     cxr_only = True
     pretrain_imagenet = True
     pretrain_chexnet = False
-    data_slicing = False
+    data_slicing = True
 
     assert not (pretrain_imagenet and pretrain_chexnet), \
         'pretrain_imagenet and pretrain_chexnet are mutually exclusive'
@@ -102,7 +102,7 @@ def config(transforms):
         'checkpointing': False,
     }
 
-    path_to_images = '/lfs/1/jdunnmon/data/nih/images/images'
+    path_to_images = '/dfs/scratch1/senwu/mmtl/emmental-tutorials/chexnet/data/images'
     path_to_labels = '/dfs/scratch1/senwu/mmtl/emmental-tutorials/chexnet/data/nih_labels.csv'
     dataset_configs = {
         'train': {
@@ -138,7 +138,7 @@ def config(transforms):
             'shuffle': False
         },
         'val': {
-            'batch_size': 16,
+            'batch_size': 64,
             'num_workers': 8,
             'shuffle': True
         }
@@ -188,7 +188,8 @@ class TrainingHarness(object):
 
         # only if 'checkpointing' is defined, True, and the experiment is observed
         logging_config = dict(logging_config)
-        logging_config['checkpointing'] = logging_config.get('checkpointing', False) and not is_unobserved
+        logging_config['checkpointing'] = logging_config.get(
+            'checkpointing', False) and not is_unobserved
 
         emmental.init(path.join(exp_dir, '_emmental_logs'))
         Meta.update_config(
@@ -267,9 +268,12 @@ class TrainingHarness(object):
     @ex.capture
     def _init_model(self, _log, encoder_class, encoder_args,
                     decoder_class, decoder_args,
-                    task_to_label_dict, task_to_cardinality_dict):
+                    task_to_label_dict, task_to_cardinality_dict,
+                    data_slicing):
+        # initialize ahared encoder
         encoder_module = getattr(modules, encoder_class)(**encoder_args)
-        tasks = [
+        # initialize classification tasks
+        primary_tasks = [
             EmmentalTask(
                 name=task_name,
                 module_pool=nn.ModuleDict(
@@ -295,6 +299,21 @@ class TrainingHarness(object):
             )
             for task_name in task_to_label_dict.keys()
         ]
+        # initialize slicing tasks
+        tasks = primary_tasks
+        if data_slicing:
+            for primary_task in primary_tasks:
+                slice_tasks = build_slice_tasks(
+                    primary_task,
+                    slice_func_dict,
+                    slice_scorer,
+                    slice_distribution,
+                    dropout=dropout,
+                    slice_ind_head_module,
+                    sep_slice_ind_feature
+                )
+                tasks += slice_tasks
+        # build emmental model
         model = EmmentalModel(name='CheXNet', tasks=tasks)
         _log.info(f'Model initalized.')
         return model
