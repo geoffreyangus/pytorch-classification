@@ -42,7 +42,6 @@ def config():
     Config for catheter detector.
     """
     dataset_name = 'chexnet'
-    dataset_df_path = '/lfs/1/gangus/data/dev_penumos_drain_labels.tsv'
 
     hypothesis_conditions = ['catheter_detector', 'chexnet']
     exp_dir = osp.join('../experiments', *hypothesis_conditions)
