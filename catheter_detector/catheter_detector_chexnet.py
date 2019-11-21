@@ -50,9 +50,6 @@ def config():
     isTrain = False
     use_annot = True
 
-    # path to images (should have subfolders trainA, trainB, valA, valB, etc)
-    dataroot = '/Users/geoffreyangus/data/synthetic_xray'
-    dataroot = '/lfs/1/gangus/data/synthetic_xray'
     # input batch size
     batchSize = 1
     # scale images to this size
@@ -113,8 +110,6 @@ def config():
     split = phase = 'test'
     # which epoch to load? set to latest to use latest cached model
     which_epoch = 'latest'
-    # how many test images to run
-    how_many = 100
     # internal or external
     sourceoftest = 'internal'
 
@@ -181,11 +176,9 @@ class Harness:
         return visualizer, web_dir, webpage
 
     @ex.capture
-    def run(self, how_many, sourceoftest):
+    def run(self, sourceoftest):
         dataset = self.dataloader.load_data()
         for i, data in enumerate(dataset):
-            if i >= how_many:
-                break
             self.model.set_input(data)
             self.model.test()
 

@@ -102,7 +102,7 @@ def config(transforms):
         'checkpointing': False,
     }
 
-    path_to_images = '/dfs/scratch1/senwu/mmtl/emmental-tutorials/chexnet/data/images'
+    path_to_images = '/lfs/1/jdunnmon/data/nih/images/images'
     path_to_labels = '/dfs/scratch1/senwu/mmtl/emmental-tutorials/chexnet/data/nih_labels.csv'
     dataset_configs = {
         'train': {
@@ -138,7 +138,7 @@ def config(transforms):
             'shuffle': False
         },
         'val': {
-            'batch_size': 64,
+            'batch_size': 16,
             'num_workers': 8,
             'shuffle': True
         }
