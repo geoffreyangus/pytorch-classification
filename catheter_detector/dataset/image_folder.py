@@ -32,7 +32,7 @@ def make_dataset(dir, split):
     #             path = os.path.join(root, fname)
     #             images.append(path)
 
-    df = pd.read_csv(os.path.join(os.environ['CXRDATA'],'CXR8-ORIG-DRAIN-SLICE-DATA',f'{split}.tsv'),sep='\t')
+    df = pd.read_csv(os.path.join(os.environ['CXRDATA'], 'nih_labels.csv'))
     fnames = [os.path.join(os.environ['CXR8IMAGES'], fl) for fl in df['Image Index']]
     for fname in fnames:
         if is_image_file(fname):

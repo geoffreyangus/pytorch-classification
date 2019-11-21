@@ -184,17 +184,17 @@ class TrainingHarness(object):
 
     @ex.capture
     def _init_meta(self, _run, _log, _seed, exp_dir, meta_config, learner_config, logging_config):
-        is_unobserved = _run.meta_info['options']['--unobserve'] 
-        
+        is_unobserved = _run.meta_info['options']['--unobserve']
+
         # only if 'checkpointing' is defined, True, and the experiment is observed
         logging_config = dict(logging_config)
         logging_config['checkpointing'] = logging_config.get('checkpointing', False) and not is_unobserved
-        
+
         emmental.init(path.join(exp_dir, '_emmental_logs'))
         Meta.update_config(
             config={
                 'meta_config': {
-                    **meta_config, 
+                    **meta_config,
                     'seed': _seed,
                 },
                 'model_config': {
@@ -296,7 +296,6 @@ class TrainingHarness(object):
             for task_name in task_to_label_dict.keys()
         ]
         model = EmmentalModel(name='CheXNet', tasks=tasks)
-        print(model)
         _log.info(f'Model initalized.')
         return model
 
