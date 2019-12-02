@@ -4,14 +4,15 @@ import os.path as osp
 import numpy as np
 import pandas as pd
 import torch
-from emmental.data import EmmentalDataset
 from PIL import Image
-from util import compose
+from emmental.data import EmmentalDataset
+from util import compose, convert_labels
 
 
 class CheXNetDataset(EmmentalDataset):
     """
     Dataset to load NIH Chest X-ray 14 dataset
+
     Modified from reproduce-chexnet repo
     https://github.com/jrzech/reproduce-chexnet
     """
@@ -81,8 +82,8 @@ class CheXNetDataset(EmmentalDataset):
         Y_dict = {}
 
         if add_binary_triage_label:
+            self.df['Abnormal'] = self.df[self.PRED_LABEL].sum(axis=1) > 0
             self.PRED_LABEL = self.PRED_LABEL + ['Abnormal']
-            self.df['Abnormal'] = self.df.sum(axis=1)
 
         for idx in range(len(self.df)):
             X_dict["image_name"].append(self.df.index[idx])
@@ -90,28 +91,32 @@ class CheXNetDataset(EmmentalDataset):
                 if label not in Y_dict:
                     Y_dict[label] = []
                 # +1 for 1 index
-                Y_dict[label].append(
-                    self.df[label].iloc[idx].astype("int"))
+                Y_dict[label].append(self.df[label].iloc[idx].astype(int))
 
         print(Y_dict.keys())
         for label in self.PRED_LABEL:
-            Y_dict[label] = torch.from_numpy(np.array(Y_dict[label]))
+            Y_dict[label] = convert_labels(
+                torch.from_numpy(np.array(Y_dict[label])), "onezero", "categorical"
+            )
 
-        super().__init__(name, X_dict=X_dict, Y_dict=Y_dict)
+        super().__init__(name, X_dict=X_dict, Y_dict=Y_dict, uid="image_name")
 
     def __len__(self):
         return len(self.df)
 
     def __getitem__(self, index):
 
-        image = Image.open(osp.join(self.path_to_images, self.X_dict["image_name"][index]))
+        x_dict = {name: feature[index] for name, feature in self.X_dict.items()}
+        y_dict = {name: label[index] for name, label in self.Y_dict.items()}
+
+        image = Image.open(
+            osp.join(self.path_to_images, self.X_dict["image_name"][index])
+        )
         image = image.convert("RGB")
 
         if self.transforms:
             image = self.transforms(image)
 
-        x_dict = {name: types[index] for name, types in self.X_dict.items()}
         x_dict["image"] = image
-        y_dict = {name: label[index] for name, label in self.Y_dict.items()}
 
         return x_dict, y_dict

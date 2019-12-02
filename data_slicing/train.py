@@ -23,13 +23,29 @@ import dataset as all_datasets
 import transforms as custom_transforms
 from transforms import transforms_ingredient
 import modules
-from util import ce_loss, output, get_sample_weights
+from util import ce_loss, output, get_sample_weights, write_to_file
 
 EXPERIMENT_NAME = 'trainer'
 ex = Experiment(EXPERIMENT_NAME, ingredients=[transforms_ingredient])
 ex.logger = logging.getLogger(__name__)
 ex.captured_out_filter = apply_backspaces_and_linefeeds
 
+CXR8_TASKS = [
+    "Atelectasis",
+    "Cardiomegaly",
+    "Effusion",
+    "Infiltration",
+    "Mass",
+    "Nodule",
+    "Pneumonia",
+    "Pneumothorax",
+    "Consolidation",
+    "Edema",
+    "Emphysema",
+    "Fibrosis",
+    "Pleural_Thickening",
+    "Hernia",
+]
 
 @ex.config
 def config(transforms):
@@ -40,6 +56,8 @@ def config(transforms):
     pretrain_imagenet = True
     pretrain_chexnet = False
     data_slicing = False
+    task_str = 'CXR8'
+    num_samples = 10000
 
     assert not (pretrain_imagenet and pretrain_chexnet), \
         'pretrain_imagenet and pretrain_chexnet are mutually exclusive'
@@ -49,6 +67,20 @@ def config(transforms):
 
     assert not data_slicing, \
         'data slicing model not yet implemented'
+
+    if task_str == 'CXR8':
+        tasks = CXR8_TASKS
+        add_binary_triage_label = False
+    elif task_str == 'TRIAGE':
+        tasks = ['Abnormal']
+        add_binary_triage_label = True
+    else:
+        tasks = task_str.split('&')
+        for task in tasks:
+            assert task in CXR8_TASKS, f'task {task} not in CXR8_TASKS'
+
+    assert not num_samples < 0, \
+        'num_samples must be a non-negative number'
 
     hypothesis_conditions = []
 
@@ -72,35 +104,19 @@ def config(transforms):
     else:
         hypothesis_conditions.append('no_pretrain')
 
+    # use task_str as directory name
+    hypothesis_conditions.append(task_str)
+
+    # restrict number of samples
+    if num_samples > 0:
+        hypothesis_conditions.append(f'{num_samples}_samples')
+    else:
+        hypothesis_conditions.append(f'full_dataset')
+
     exp_dir = path.join('experiments', *hypothesis_conditions)
 
-    tasks = [
-        "Atelectasis",
-        "Cardiomegaly",
-        "Effusion",
-        "Infiltration",
-        "Mass",
-        "Nodule",
-        "Pneumonia",
-        "Pneumothorax",
-        "Consolidation",
-        "Edema",
-        "Emphysema",
-        "Fibrosis",
-        "Pleural_Thickening",
-        "Hernia",
-    ]
     task_to_label_dict = {t: t for t in tasks}
     task_to_cardinality_dict = {t: 2 for t in tasks}
-
-    meta_config = {
-        'device': 0
-    }
-
-    logging_config = {
-        'evaluation_freq': 4000,
-        'checkpointing': False,
-    }
 
     path_to_images = '/lfs/1/jdunnmon/data/nih/images/images'
     path_to_labels = '/dfs/scratch1/senwu/mmtl/emmental-tutorials/chexnet/data/nih_labels.csv'
@@ -110,11 +126,11 @@ def config(transforms):
             'args': {
                 'path_to_images': path_to_images,
                 'path_to_labels': path_to_labels,
-                'sample': 0,
+                'sample': num_samples,
                 'seed': 1701,
                 'finding': 'any',
                 'transforms': transforms['augmentation'] + transforms['preprocessing'],
-                'add_binary_triage_label': False
+                'add_binary_triage_label': add_binary_triage_label
             }
         },
         'val': {
@@ -122,11 +138,11 @@ def config(transforms):
             'args': {
                 'path_to_images': path_to_images,
                 'path_to_labels': path_to_labels,
-                'sample': 0,
+                'sample': num_samples,
                 'seed': 1701,
                 'finding': 'any',
                 'transforms': transforms['preprocessing'],
-                'add_binary_triage_label': False
+                'add_binary_triage_label': add_binary_triage_label
             }
         }
     }
@@ -134,13 +150,13 @@ def config(transforms):
     dataloader_configs = {
         'train': {
             'batch_size': 16,
-            'num_workers': 8,
-            'shuffle': False
+            'num_workers': 16,
+            'shuffle': True
         },
         'val': {
             'batch_size': 16,
-            'num_workers': 8,
-            'shuffle': True
+            'num_workers': 16,
+            'shuffle': False
         }
     }
     sampler_configs = {}
@@ -156,6 +172,35 @@ def config(transforms):
         'num_layers': 1,
         'encoding_size': 1024,
         'dropout_p': 0.0
+    }
+
+    # Additional Emmental Meta configs
+
+    meta_config = {
+        'verbose': True,
+        'log_path': None
+    }
+
+    data_config = {
+        'min_data_len': 0,
+        'max_data_len': 0
+    }
+
+    model_config = {
+        'model_path': None,
+        'device': 0,
+        'dataparallel': True
+    }
+
+    logging_config = {
+        'evaluation_freq': 4000,
+        'checkpointing': False,
+        'checkpointer_config': {
+            'checkpoint_runway': 10,
+            'checkpoint_metric': {
+                "model/val/accuracy": "max"
+            }
+        }
     }
 
     learner_config = {
@@ -198,7 +243,7 @@ class TrainingHarness(object):
                     'seed': _seed,
                 },
                 'model_config': {
-                    'device': meta_config['device']
+                    **model_config
                 },
                 'learner_config': learner_config,
                 'logging_config': logging_config
@@ -293,19 +338,36 @@ class TrainingHarness(object):
                 loss_func=partial(ce_loss, task_name),
                 output_func=partial(output, task_name),
                 scorer=Scorer(
-                    metrics=['accuracy', 'roc_auc']),
+                    metrics=['accuracy', 'roc_auc', 'f1']),
             )
             for task_name in task_to_label_dict.keys()
         ]
         model = EmmentalModel(name='CheXNet', tasks=tasks)
+        if Meta.config["model_config"]["model_path"]:
+            model.load(Meta.config["model_config"]["model_path"])
+
         _log.info(f'Model initalized.')
         return model
 
     @ex.capture
     def run(self, _log):
+        _log.info(f"Emmental config: {Meta.config}")
+        write_to_file("emmental_config.txt", Meta.config)
+
         learner = EmmentalLearner()
         _log.info(f'Starting training.')
         learner.learn(self.model, self.dataloaders)
+        _log.info(f'Finished training.')
+
+        scores = self.model.score(self.dataloaders)
+
+        # Save metrics into file
+        _log.info(f'Metrics: {scores}')
+        write_to_file('metrics.txt', scores)
+
+        # Save best metrics into file
+        _log.info(f'Best metrics: {learner.logging_manager.checkpointer.best_metric_dict}')
+        write_to_file('best_metrics.txt', learner.logging_manager.checkpointer.best_metric_dict)
 
 
 @ex.config_hook
