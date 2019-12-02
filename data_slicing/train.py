@@ -102,7 +102,7 @@ def config(transforms):
         'checkpointing': False,
     }
 
-    path_to_images = '/dfs/scratch1/senwu/mmtl/emmental-tutorials/chexnet/data/images'
+    path_to_images = '/lfs/1/jdunnmon/data/nih/images/images'
     path_to_labels = '/dfs/scratch1/senwu/mmtl/emmental-tutorials/chexnet/data/nih_labels.csv'
     dataset_configs = {
         'train': {
@@ -138,7 +138,7 @@ def config(transforms):
             'shuffle': False
         },
         'val': {
-            'batch_size': 64,
+            'batch_size': 16,
             'num_workers': 8,
             'shuffle': True
         }
@@ -184,7 +184,7 @@ class TrainingHarness(object):
 
     @ex.capture
     def _init_meta(self, _run, _log, _seed, exp_dir, meta_config, learner_config, logging_config):
-        is_unobserved = _run.meta_info['options']['--unobserve']
+        is_unobserved = _run.meta_info['options']['--unobserved']
 
         # only if 'checkpointing' is defined, True, and the experiment is observed
         logging_config = dict(logging_config)
