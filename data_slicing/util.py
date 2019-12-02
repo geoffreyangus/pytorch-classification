@@ -26,7 +26,7 @@ def ce_loss(task_name, immediate_output, Y, active):
     CrossEntropyLoss function to be used with Emmental module.
     """
     return F.cross_entropy(
-        immediate_output[f"decoder_module_{task_name}"][0], Y.view(-1)
+        immediate_output[f"decoder_module_{task_name}"][0][active], (Y.view(-1))[active]
     )
 
 

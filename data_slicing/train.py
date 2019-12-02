@@ -280,7 +280,9 @@ class TrainingHarness(object):
                 ),
                 task_flow=[
                     {
-                        'name': 'encoder_module', 'module': 'encoder_module', 'inputs': [('_input_', 'image')]
+                        'name': 'encoder_module',
+                        'module': 'encoder_module',
+                        'inputs': [('_input_', 'image')]
                     },
                     {
                         'name':   f'decoder_module_{task_name}',

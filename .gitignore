@@ -1,4 +1,7 @@
 # tmp dirs and files
+experiments
+drain_detector/experiments/
+data_slicing/experiments/
 catheter_detector/results
 checkpoint
 checkpoints
