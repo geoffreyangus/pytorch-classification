@@ -1,17 +1,21 @@
 python run.py \
-    --data_path /dfs/scratch1/senwu/mmtl/emmental-tutorials/chexnet/data/nih_labels.csv \
-    --image_path /lfs/1/jdunnmon/data/nih/images/images \
-    --log_path logs \
+    --data_path $CXR8DATA \
+    --image_path $CXR8IMAGES \
+    --log_path log_abnorm_ml_slices \
     --seed 0 \
-    --n_epochs 1 \
+    --n_epochs 30 \
     --train_split train \
     --valid_split val \
     --optimizer sgd \
-    --lr 0.001 \
+    --lr 0.01 \
     --min_lr 1e-6 \
     --counter_unit epoch \
     --evaluation_freq 1 \
     --checkpointing 1 \
-    --checkpoint_metric model/all/train/loss:min \
+    --checkpoint_metric Abnormal/CXR8/val/accuracy:max \
     --batch_size 16 \
-#    --slices 1
+    --slices 0 \
+    --tasks TRIAGE \
+    --device 0 \
+    --dataparallel 1 \
+    --lr_scheduler linear

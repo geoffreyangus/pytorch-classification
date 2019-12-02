@@ -1,9 +1,10 @@
 from functools import partial
 
 import torch.nn.functional as F
+from torch import nn
+
 from emmental.scorer import Scorer
 from emmental.task import EmmentalTask
-from torch import nn
 from modules.torch_vision_encoder import TorchVisionEncoder
 
 
@@ -36,9 +37,7 @@ def get_task(task_names):
             module_pool=nn.ModuleDict(
                 {
                     f"cnn": cnn_module,
-                    f"{task_name}_pred_head": nn.Linear(
-                        classification_layer_dim, 2
-                    ),
+                    f"{task_name}_pred_head": nn.Linear(classification_layer_dim, 2),
                 }
             ),
             task_flow=[
@@ -51,7 +50,7 @@ def get_task(task_names):
             ],
             loss_func=partial(ce_loss, task_name),
             output_func=partial(output, task_name),
-            scorer=Scorer(metrics=["accuracy", "roc_auc"]),
+            scorer=Scorer(metrics=["accuracy", "f1"]),
         )
         tasks.append(task)
 

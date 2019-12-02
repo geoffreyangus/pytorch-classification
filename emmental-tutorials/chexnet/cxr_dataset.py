@@ -91,7 +91,7 @@ class CXR8Dataset(EmmentalDataset):
                 if label not in Y_dict:
                     Y_dict[label] = []
                 # +1 for 1 index
-                Y_dict[label].append(self.df[label].iloc[idx].astype("int") + 1)
+                Y_dict[label].append(self.df[label].iloc[idx].astype("int"))
 
         for label in self.PRED_LABEL:
             Y_dict[label] = torch.from_numpy(np.array(Y_dict[label]))
@@ -111,7 +111,8 @@ class CXR8Dataset(EmmentalDataset):
         if self.transform:
             image = self.transform(image)
 
-        x_dict = {"image": image}
+        x_dict = {k: v[index] for k, v in self.X_dict.items()}
+        x_dict["image"] = image
         y_dict = {name: label[index] for name, label in self.Y_dict.items()}
 
         return x_dict, y_dict

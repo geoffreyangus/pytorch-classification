@@ -3,8 +3,10 @@ import os
 import numpy as np
 import pandas as pd
 import torch
-from emmental.data import EmmentalDataset
 from PIL import Image
+
+from emmental.data import EmmentalDataset
+from utils import convert_labels
 
 
 class CXR8Dataset(EmmentalDataset):
@@ -25,6 +27,7 @@ class CXR8Dataset(EmmentalDataset):
         sample=0,
         finding="any",
         seed=0,
+        add_binary_triage_label=False,
     ):
         self.transform = transform
         self.path_to_images = path_to_images
@@ -80,18 +83,24 @@ class CXR8Dataset(EmmentalDataset):
         X_dict = {"image_name": []}
         Y_dict = {}
 
+        if add_binary_triage_label:
+            self.df["Abnormal"] = self.df[self.PRED_LABEL].sum(axis=1) > 0
+            self.PRED_LABEL = self.PRED_LABEL + ["Abnormal"]
+
         for idx in range(len(self.df)):
             X_dict["image_name"].append(self.df.index[idx])
             for label in self.PRED_LABEL:
                 if label not in Y_dict:
                     Y_dict[label] = []
                 # +1 for 1 index
-                Y_dict[label].append(self.df[label].iloc[idx].astype("int") + 1)
+                Y_dict[label].append(self.df[label].iloc[idx].astype(int))
 
         for label in self.PRED_LABEL:
-            Y_dict[label] = torch.from_numpy(np.array(Y_dict[label]))
-        print(X_dict.keys())
-        super().__init__(name, X_dict=X_dict, Y_dict=Y_dict)
+            Y_dict[label] = convert_labels(
+                torch.from_numpy(np.array(Y_dict[label])), "onezero", "categorical"
+            )
+
+        super().__init__(name, X_dict=X_dict, Y_dict=Y_dict, uid="image_name")
 
     def __len__(self):
         return len(self.df)
@@ -110,7 +119,5 @@ class CXR8Dataset(EmmentalDataset):
             image = self.transform(image)
 
         x_dict["image"] = image
-        # x_dict = {"image": image}
-        # y_dict = {name: label[index] for name, label in self.Y_dict.items()}
 
         return x_dict, y_dict

@@ -1,6 +1,3 @@
-load_ext autoreload
-autoreload 2
-
 import logging
 
 import argparse
@@ -28,7 +25,7 @@ emmental.init("logs")
 # Defining helper functions
 def ce_loss(task_name, immediate_ouput, Y, active):
     return F.cross_entropy(
-        immediate_ouput[f"classification_module_{task_name}"][0], Y.view(-1) - 1
+        immediate_ouput[f"classification_module_{task_name}"][0], Y.view(-1)
     )
 
 def output(task_name, immediate_ouput):
@@ -37,7 +34,7 @@ def output(task_name, immediate_ouput):
 def parse_args():
     parser = argparse.ArgumentParser(description='Run chexnet slicing experiments')
     parser.add_argument('--data_name', default='CXR8', help='Dataset name')
-    parser.add_argument('cxrdata_path', 
+    parser.add_argument('--cxrdata_path', 
                         default=f"/dfs/scratch1/senwu/mmtl/emmental-tutorials/chexnet/data/nih_labels.csv",
                         help='Path to labels')
     parser.add_argument('--cxrimage_path', 
@@ -108,10 +105,9 @@ if __name__=="__main__":
     all_tasks = CXR8_TASK_NAMES +['Abnormal']
     if args.tasks == 'CXR8':
         # Standard chexnet
-        task_list = CXR8_TASK_NAMES:
-    elif:
-        # Binary triage
-        args.tasks == 'TRIAGE':
+        task_list = CXR8_TASK_NAMES
+    # Binary triage
+    elif args.tasks == 'TRIAGE':
         task_list = ['Abnormal']
     else:
         # Otherwise, making sure tasks are valid
