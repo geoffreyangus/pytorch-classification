@@ -44,11 +44,12 @@ def config():
     dataset_name = 'chexnet'
 
     hypothesis_conditions = ['catheter_detector', 'chexnet']
-    exp_dir = osp.join('../experiments', *hypothesis_conditions)
+    exp_dir = osp.join('experiments', *hypothesis_conditions)
 
     isTrain = False
     use_annot = True
-
+    
+    dataroot = '/lfs/1/gangus/data/synthetic_xray'
     # input batch size
     batchSize = 1
     # scale images to this size
@@ -66,7 +67,7 @@ def config():
     # gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU
     gpu_ids = [0]
     # name of the experiment. It decides where to store samples and models
-    name = 'experiment_name'
+    name = 'catheter_detect'
     # chooses how datasets are loaded.
     dataset_mode = 'alignedsrcnn'
     # chooses which model to use
@@ -94,7 +95,7 @@ def config():
     # scaling and cropping of images at load time [resize_and_crop|crop|scale_width|scale_width_and_crop]
     resize_or_crop = 'none'
     # if specified, do not flip the images for data augmentation
-    no_flip = False
+    no_flip = True
     # network initialization [normal|xavier|kaiming|orthogonal]
     init_type = 'normal'
 
@@ -113,23 +114,22 @@ def config():
     sourceoftest = 'internal'
 
     # training only
-    display_freq = 100
-    display_single_pane_ncols = 0
-    update_html_freq = 1000
-    print_freq = 100
-    save_latest_freq = 2000
-    save_epoch_freq = 2
-    continue_train = False
-    epoch_count = 1
-    phase = 'train'
-    which_epoch = 'latest'
-    niter = 200
-    niter_decay = 100
-    beta1 = 0.9
-    lr = 0.0001
-    no_html = True
-    lr_policy = 'step'
-    lr_decay_iters = 10
+#     display_freq = 100
+#     display_single_pane_ncols = 0
+#     update_html_freq = 1000
+#     print_freq = 100
+#     save_latest_freq = 2000
+#     save_epoch_freq = 2
+#     continue_train = False
+#     epoch_count = 1
+#     which_epoch = 'latest'
+#     niter = 200
+#     niter_decay = 100
+#     beta1 = 0.9
+#     lr = 0.0001
+#     no_html = True
+#     lr_policy = 'step'
+#     lr_decay_iters = 10
 
     # more testing boilerplate config
     nThreads = 1
@@ -177,6 +177,7 @@ class Harness:
     @ex.capture
     def run(self, sourceoftest):
         dataset = self.dataloader.load_data()
+        print(f'processing {len(dataset)} images')
         for i, data in enumerate(dataset):
             self.model.set_input(data)
             self.model.test()
@@ -187,8 +188,7 @@ class Harness:
             if sourceoftest == 'internal':
                 self.visualizer.save_images(self.webpage, visuals, img_path)
             elif sourceoftest == 'external':
-                self.visualizer.save_images_nogt(:q!
-                    self.webpage, visuals, img_path)
+                self.visualizer.save_images_nogt(self.webpage, visuals, img_path)
 
         self.webpage.save()
 

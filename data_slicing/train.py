@@ -184,7 +184,7 @@ class TrainingHarness(object):
 
     @ex.capture
     def _init_meta(self, _run, _log, _seed, exp_dir, meta_config, learner_config, logging_config):
-        is_unobserved = _run.meta_info['options']['--unobserve']
+        is_unobserved = _run.meta_info['options']['--unobserved']
 
         # only if 'checkpointing' is defined, True, and the experiment is observed
         logging_config = dict(logging_config)
