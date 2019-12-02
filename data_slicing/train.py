@@ -28,7 +28,7 @@ from util import ce_loss, output, get_sample_weights, write_to_file
 EXPERIMENT_NAME = 'trainer'
 ex = Experiment(EXPERIMENT_NAME, ingredients=[transforms_ingredient])
 ex.logger = logging.getLogger(__name__)
-ex.captured_out_filter = apply_backspaces_and_linefeeds
+ex.captured_out_filter = lambda captured_output: "Output capturing turned off."
 
 CXR8_TASKS = [
     "Atelectasis",
@@ -57,7 +57,7 @@ def config(transforms):
     pretrain_chexnet = False
     data_slicing = False
     task_str = 'CXR8'
-    num_samples = 10000
+    num_samples = 0
 
     assert not (pretrain_imagenet and pretrain_chexnet), \
         'pretrain_imagenet and pretrain_chexnet are mutually exclusive'
@@ -193,10 +193,9 @@ def config(transforms):
     }
 
     logging_config = {
-        'evaluation_freq': 4000,
+        'evaluation_freq': 1,
         'checkpointing': False,
         'checkpointer_config': {
-            'checkpoint_runway': 10,
             'checkpoint_metric': {
                 "model/val/accuracy": "max"
             }
@@ -228,7 +227,7 @@ class TrainingHarness(object):
         self.model = self._init_model()
 
     @ex.capture
-    def _init_meta(self, _run, _log, _seed, exp_dir, meta_config, learner_config, logging_config):
+    def _init_meta(self, _run, _log, _seed, exp_dir, meta_config, model_config, learner_config, logging_config):
         is_unobserved = _run.meta_info['options']['--unobserved']
 
         # only if 'checkpointing' is defined, True, and the experiment is observed
@@ -338,7 +337,7 @@ class TrainingHarness(object):
                 loss_func=partial(ce_loss, task_name),
                 output_func=partial(output, task_name),
                 scorer=Scorer(
-                    metrics=['accuracy', 'roc_auc', 'f1']),
+                    metrics=['accuracy', 'f1']),
             )
             for task_name in task_to_label_dict.keys()
         ]
