@@ -1,6 +1,6 @@
 python run.py \
     --data_path /dfs/scratch1/senwu/mmtl/emmental-tutorials/chexnet/data/nih_labels.csv \
-    --image_path /dfs/scratch1/senwu/mmtl/emmental-tutorials/chexnet/data/images \
+    --image_path /lfs/1/jdunnmon/data/nih/images/images \
     --log_path logs \
     --seed 0 \
     --n_epochs 1 \
@@ -13,5 +13,5 @@ python run.py \
     --evaluation_freq 1 \
     --checkpointing 1 \
     --checkpoint_metric model/all/train/loss:min \
-    --batch_size 8 \
-    --slices 1
+    --batch_size 16 \
+#    --slices 1
