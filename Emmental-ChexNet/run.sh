@@ -1,0 +1,17 @@
+python run.py \
+    --data_path /dfs/scratch1/senwu/mmtl/emmental-tutorials/chexnet/data/nih_labels.csv \
+    --image_path /dfs/scratch1/senwu/mmtl/emmental-tutorials/chexnet/data/images \
+    --log_path logs \
+    --seed 0 \
+    --n_epochs 1 \
+    --train_split train \
+    --valid_split val \
+    --optimizer sgd \
+    --lr 0.001 \
+    --min_lr 1e-6 \
+    --counter_unit epoch \
+    --evaluation_freq 1 \
+    --checkpointing 1 \
+    --checkpoint_metric model/all/train/loss:min \
+    --batch_size 8 \
+    --slices 1

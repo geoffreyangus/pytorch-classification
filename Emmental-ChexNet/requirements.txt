@@ -1,0 +1,3 @@
+git+https://github.com/SenWu/emmental.git@slicing
+Pillow
+torchvision
