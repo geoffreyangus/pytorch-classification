@@ -4,7 +4,6 @@ from functools import partial
 import pandas as pd
 
 from emmental.contrib.slicing.slicing_function import slicing_function
-from task_config import CXR8_TASK_NAMES
 
 # Creating global df from nih labels
 # TODO: Replace this with external data structure, for now load from local
@@ -100,7 +99,6 @@ def slice_concerning_effusion(example):
     return concerning_effusion
 
 
-Slicing function for 'pneumothorax'
-@slicing_function(fields=["image_name"])
-def slice_pneumothorax(example):
-   return SLICE_DF[example.image_name]['Atelectasis'] == 1
+# @slicing_function(fields=["image_name"])
+# def slice_pneumothorax(example):
+#    return SLICE_DF[example.image_name]['Atelectasis'] == 1

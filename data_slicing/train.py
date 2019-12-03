@@ -13,6 +13,7 @@ from emmental.model import EmmentalModel
 from emmental.scorer import Scorer
 from emmental.task import EmmentalTask
 
+import pandas as pd
 import torch
 import torch.nn as nn
 import torch.utils.data as torch_data
