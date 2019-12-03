@@ -340,7 +340,8 @@ class TrainingHarness(object):
                 module_pool=nn.ModuleDict(
                     {
                         f'encoder_module': encoder_module,
-                        f'decoder_module_{task_name}': getattr(modules, decoder_class)(task_to_cardinality_dict[task_name], **decoder_args),
+                        f'decoder_module_{task_name}': nn.Linear(in_features=decoder_args['encoding_size'],
+                                                                 out_features=task_to_cardinality_dict[task_name]),
                     }
                 ),
                 task_flow=[

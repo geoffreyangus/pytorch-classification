@@ -19,7 +19,7 @@ class LinearDecoder(nn.Module):
         self.layers = nn.ModuleList()
         for l in range(num_layers - 1):
             self.layers.append(nn.Linear(in_features=encoding_size,
-                                            out_features=encoding_size))
+                                         out_features=encoding_size))
             self.layers.append(nn.Dropout(p=dropout_p))
         # classification layer
         self.layers.append(nn.Linear(in_features=encoding_size,
