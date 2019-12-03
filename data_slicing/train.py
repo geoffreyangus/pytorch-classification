@@ -70,19 +70,19 @@ def config(transforms):
         'CXR+segmentation input not yet implemented'
 
     if task_str == 'CXR8':
-        tasks = CXR8_TASKS
+        task_names = CXR8_TASKS
         add_binary_triage_label = False
     elif task_str == 'TRIAGE':
-        tasks = ['Abnormal']
+        task_names = ['Abnormal']
         add_binary_triage_label = True
     else:
-        tasks = task_str.split('&')
-        for task in tasks:
+        task_names = task_str.split('&')
+        for task in task_names:
             assert task in CXR8_TASKS, f'task {task} not in CXR8_TASKS'
 
-    slice_tasks = {task: {'drain': 'slice_drain'} for task in tasks}
-    slice_tasks_eval = slice_tasks
-    if slice_tasks or slice_tasks_eval:
+    slice_task_names = {t: {'drain': 'slice_drain'} for t in task_names}
+    slice_task_names_eval = slice_task_names
+    if slice_task_names or slice_task_names_eval:
         assert slice_enabled, 'slice_tasks only if slice_enabled'
     slice_df_path = '/lfs/1/gangus/repositories/pytorch-classification/drain_detector/data/by-patient-id/split/all.csv'
 
@@ -122,8 +122,8 @@ def config(transforms):
 
     exp_dir = path.join('experiments', *hypothesis_conditions)
 
-    task_to_label_dict = {t: t for t in tasks}
-    task_to_cardinality_dict = {t: 2 for t in tasks}
+    task_to_label_dict = {t: t for t in task_names}
+    task_to_cardinality_dict = {t: 2 for t in task_names}
 
     path_to_images = '/lfs/1/jdunnmon/data/nih/images/images'
     path_to_labels = '/dfs/scratch1/senwu/mmtl/emmental-tutorials/chexnet/data/nih_labels.csv'
@@ -384,22 +384,22 @@ class TrainingHarness(object):
         return tasks
 
     @ex.capture
-    def _init_slicing_functions(self, _log, slice_df_path, slice_tasks, slice_tasks_eval):
+    def _init_slicing_functions(self, _log, slice_df_path, slice_task_names, slice_task_names_eval):
         slicing_functions.SLICE_DF = pd.read_csv(slice_df_path).set_index('Image Index')
 
         slicing_functions_model = defaultdict(dict)
-        for slice_task, slice_func_dict in slice_tasks.items():
-            slicing_functions_model[slice_task] = {k: getattr(slicing_functions, v)
-                                                   for k, v in slice_func_dict.items()}
+        for slice_task_name, slice_func_dict in slice_task_names.items():
+            slicing_functions_model[slice_task_name] = {k: getattr(slicing_functions, v)
+                                                        for k, v in slice_func_dict.items()}
         slicing_functions_eval = defaultdict(dict)
-        for slice_task, slice_func_dict in slice_tasks_eval.items():
-            slicing_functions_eval[slice_task] = {k: getattr(slicing_functions, v)
-                                                  for k, v in slice_func_dict.items()}
+        for slice_task_name, slice_func_dict in slice_task_names_eval.items():
+            slicing_functions_eval[slice_task_name] = {k: getattr(slicing_functions, v)
+                                                       for k, v in slice_func_dict.items()}
 
         return slicing_functions_model, slicing_functions_eval
 
     @ex.capture
-    def run(self, _log, tasks):
+    def run(self, _log, task_names):
         _log.info(f"Emmental config: {Meta.config}")
         write_to_file("emmental_config.txt", Meta.config)
 
@@ -409,11 +409,11 @@ class TrainingHarness(object):
         _log.info(f'Finished training.')
 
         slice_func_dict = {}
-        for task in tasks:
-            slice_func_dict.update(self.slicing_functions_eval[task])
+        for t in task_names:
+            slice_func_dict.update(self.slicing_functions_eval[t])
 
         if len(slice_func_dict) > 0:
-            scores = score_slices(self.model, self.dataloaders, tasks, slice_func_dict)
+            scores = score_slices(self.model, self.dataloaders, task_names, slice_func_dict)
         else:
             scores = self.model.score(self.dataloaders)
 
