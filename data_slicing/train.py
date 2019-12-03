@@ -333,7 +333,7 @@ class TrainingHarness(object):
     @ex.capture
     def _init_tasks(self, _log, encoder_class, encoder_args,
                     decoder_class, decoder_args,
-                    task_to_label_dict, task_to_cardinality_dict):
+                    task_to_label_dict, task_to_cardinality_dict, slice_dropout):
         encoder_module = getattr(modules, encoder_class)(**encoder_args)
         tasks = [
             EmmentalTask(
@@ -376,7 +376,7 @@ class TrainingHarness(object):
                     self.slicing_functions[task.name],
                     slice_distribution,
                     dropout=slice_dropout,
-                    slice_ind_head_module=slice_ind_head_module,
+                    slice_ind_head_module=None,
                 )
                 all_tasks.extend(slice_tasks)
             else:
