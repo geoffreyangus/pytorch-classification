@@ -1,5 +1,6 @@
 import os
 import os.path as osp
+import logging
 
 import numpy as np
 import torch
@@ -8,6 +9,44 @@ import torch.nn.functional as F
 
 from emmental import Meta
 import transforms as custom_transforms
+
+logger = logging.getLogger(__name__)
+
+
+def score_slices(model, dataloaders, task_names, slice_func_dict):
+    assert isinstance(dataloaders, list)
+    assert isinstance(task_names, list)
+    assert isinstance(slice_func_dict, dict)
+    scores = {}
+    for task_name in task_names:
+        scorer = model.scorers[task_name]
+        for dataloader in dataloaders:
+            logging.info(
+                f"Evaluating on task {task_name}, {dataloader.split} split")
+            pred_dict = model.predict(dataloader, return_preds=True)
+            golds = pred_dict["golds"][task_name]
+            probs = pred_dict["probs"][task_name]
+            preds = pred_dict["preds"][task_name]
+            split_scores = scorer.score(golds, probs, preds)
+            scores.update(split_scores)
+            for slice_name, slice_func in slice_func_dict.items():
+                logging.info(f"Evaluating slice {slice_name}")
+                inds = slice_func(dataloader.dataset)
+                mask = (inds == 1).numpy().astype(bool)
+                slice_scores = scorer.score(
+                    golds[mask], probs[mask], preds[mask])
+                for metric_name, metric_value in slice_scores.items():
+                    identifier = "/".join(
+                        [
+                            f"{task_name}:{slice_name}",
+                            dataloader.data_name,
+                            dataloader.split,
+                            metric_name,
+                        ]
+                    )
+                    scores[identifier] = metric_value
+    return scores
+
 
 def compose(fn_list):
     """

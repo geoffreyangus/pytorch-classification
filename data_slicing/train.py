@@ -2,9 +2,11 @@ import os
 import os.path as path
 import logging
 from functools import partial
+from collections import defaultdict
 
 import emmental
 from emmental import Meta
+from emmental.contrib import slicing
 from emmental.data import EmmentalDataLoader
 from emmental.learner import EmmentalLearner
 from emmental.model import EmmentalModel
@@ -23,6 +25,7 @@ import dataset as all_datasets
 import transforms as custom_transforms
 from transforms import transforms_ingredient
 import modules
+import slicing_functions
 from util import ce_loss, output, get_sample_weights, write_to_file
 
 EXPERIMENT_NAME = 'trainer'
@@ -55,7 +58,7 @@ def config(transforms):
     cxr_only = True
     pretrain_imagenet = True
     pretrain_chexnet = False
-    data_slicing = False
+    slice_enabled = False
     task_str = 'CXR8'
     num_samples = 0
 
@@ -64,9 +67,6 @@ def config(transforms):
 
     assert cxr_only, \
         'CXR+segmentation input not yet implemented'
-
-    assert not data_slicing, \
-        'data slicing model not yet implemented'
 
     if task_str == 'CXR8':
         tasks = CXR8_TASKS
@@ -79,13 +79,19 @@ def config(transforms):
         for task in tasks:
             assert task in CXR8_TASKS, f'task {task} not in CXR8_TASKS'
 
+    slice_tasks = {task: {'drain': 'slice_drain'} for task in tasks}
+    slice_tasks_eval = slice_tasks
+    if slice_tasks or slice_tasks_eval:
+        assert slice_enabled, 'slice_tasks only if slice_enabled'
+    slice_df_path = '/lfs/1/gangus/repositories/pytorch-classification/drain_detector/data/by-patient-id/split/all.csv'
+
     assert not num_samples < 0, \
         'num_samples must be a non-negative number'
 
     hypothesis_conditions = []
 
     # data slicing model or not
-    if data_slicing:
+    if slice_enabled:
         hypothesis_conditions.append('data_slicing')
     else:
         hypothesis_conditions.append('baseline')
@@ -224,10 +230,15 @@ class TrainingHarness(object):
 
         self.datasets = self._init_datasets()
         self.dataloaders = self._init_dataloaders()
+
+        (self.slicing_functions,
+         self.slicing_functions_eval) = self._init_slicing_functions()
         self.model = self._init_model()
 
     @ex.capture
-    def _init_meta(self, _run, _log, _seed, exp_dir, meta_config, model_config, learner_config, logging_config):
+    def _init_meta(self, _run, _log, _seed, exp_dir,
+                   meta_config, model_config,
+                   learner_config, logging_config):
         is_unobserved = _run.meta_info['options']['--unobserved']
 
         # only if 'checkpointing' is defined, True, and the experiment is observed
@@ -309,7 +320,16 @@ class TrainingHarness(object):
         return sampler
 
     @ex.capture
-    def _init_model(self, _log, encoder_class, encoder_args,
+    def _init_model(self, _log):
+        tasks = self._init_tasks()
+        model = EmmentalModel(name='CheXNet', tasks=tasks)
+        if Meta.config["model_config"]["model_path"]:
+            model.load(Meta.config["model_config"]["model_path"])
+        _log.info(f'Model initalized.')
+        return model
+
+    @ex.capture
+    def _init_tasks(self, _log, encoder_class, encoder_args,
                     decoder_class, decoder_args,
                     task_to_label_dict, task_to_cardinality_dict):
         encoder_module = getattr(modules, encoder_class)(**encoder_args)
@@ -341,15 +361,44 @@ class TrainingHarness(object):
             )
             for task_name in task_to_label_dict.keys()
         ]
-        model = EmmentalModel(name='CheXNet', tasks=tasks)
-        if Meta.config["model_config"]["model_path"]:
-            model.load(Meta.config["model_config"]["model_path"])
-
-        _log.info(f'Model initalized.')
-        return model
+        all_tasks = []
+        for task in tasks:
+            if task.name in self.slicing_functions.keys():
+                slice_distribution = slicing.add_slice_labels(
+                    task,
+                    self.dataloaders,
+                    self.slicing_functions[task.name]
+                )
+                slice_tasks = slicing.build_slice_tasks(
+                    task,
+                    self.slicing_functions[task.name],
+                    slice_distribution,
+                    dropout=slice_dropout,
+                    slice_ind_head_module=slice_ind_head_module,
+                )
+                all_tasks.extend(slice_tasks)
+            else:
+                all_tasks.append(task)
+        tasks = all_tasks
+        return tasks
 
     @ex.capture
-    def run(self, _log):
+    def _init_slicing_functions(self, _log, slice_df_path, slice_tasks, slice_tasks_eval):
+        slicing_functions.SLICE_DF = pd.read_csv(slice_df_path).set_index('Image Index')
+
+        slicing_functions_model = defaultdict(dict)
+        for slice_task, slice_func_dict in slice_tasks.items():
+            slicing_functions_model[slice_task] = {k: getattr(slicing_functions, v)
+                                                   for k, v in slice_func_dict.items()}
+        slicing_functions_eval = defaultdict(dict)
+        for slice_task, slice_func_dict in slice_tasks_eval.items():
+            slicing_functions_eval[slice_task] = {k: getattr(slicing_functions, v)
+                                                  for k, v in slice_func_dict.items()}
+
+        return slicing_functions_model, slicing_functions_eval
+
+    @ex.capture
+    def run(self, _log, tasks):
         _log.info(f"Emmental config: {Meta.config}")
         write_to_file("emmental_config.txt", Meta.config)
 
@@ -358,7 +407,14 @@ class TrainingHarness(object):
         learner.learn(self.model, self.dataloaders)
         _log.info(f'Finished training.')
 
-        scores = self.model.score(self.dataloaders)
+        slice_func_dict = {}
+        for task in tasks:
+            slice_func_dict.update(self.slicing_functions_eval[task])
+
+        if len(slice_func_dict) > 0:
+            scores = score_slices(self.model, self.dataloaders, tasks, slice_func_dict)
+        else:
+            scores = self.model.score(self.dataloaders)
 
         # Save metrics into file
         _log.info(f'Metrics: {scores}')
