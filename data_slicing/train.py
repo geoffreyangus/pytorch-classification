@@ -84,6 +84,7 @@ def config(transforms):
     if slice_task_names or slice_task_names_eval:
         assert slice_enabled, 'slice_tasks only if slice_enabled'
     slice_df_path = '/lfs/1/gangus/repositories/pytorch-classification/drain_detector/data/by-patient-id/split/all.csv'
+    slice_dropout = 0.0
 
     assert not num_samples < 0, \
         'num_samples must be a non-negative number'
@@ -286,7 +287,7 @@ class TrainingHarness(object):
                 **dataloader_config
             }
             dl = EmmentalDataLoader(
-                task_to_label_dict=task_to_label_dict,
+                task_to_label_dict={**task_to_label_dict},
                 dataset=self.datasets[split],
                 split=split,
                 **dataloader_config,
