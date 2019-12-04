@@ -120,7 +120,7 @@ def config(transforms):
             'args': {
                 'weight_task': 'drain',
                 'class_probs': [0.4, 0.6],
-                'num_samples': 100,
+                'num_samples': 30000,
                 'replacement': True,
             }
         }
@@ -148,7 +148,7 @@ def config(transforms):
     }
 
     learner_config = {
-        'n_epochs': 1,
+        'n_epochs': 100,
         'valid_split': 'valid',
         'optimizer_config': {'optimizer': 'adam', 'lr': 0.01, 'l2': 0.000},
         'lr_scheduler_config': {
