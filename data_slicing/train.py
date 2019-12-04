@@ -80,7 +80,7 @@ def config(transforms):
         for task in task_names:
             assert task in CXR8_TASKS, f'task {task} not in CXR8_TASKS'
 
-    slice_task_names = {t: {'drain': 'slice_drain'} for t in task_names}
+    slice_task_names = {t: {'drain': 'slice_drain'} for t in task_names if t == 'Pneumothorax'}
     slice_task_names_eval = slice_task_names
     if slice_task_names or slice_task_names_eval:
         assert slice_enabled, 'slice_tasks only if slice_enabled'

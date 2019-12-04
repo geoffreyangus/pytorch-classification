@@ -12,7 +12,7 @@ from emmental.contrib import slicing
 from emmental.data import EmmentalDataLoader
 from emmental.learner import EmmentalLearner
 from emmental.model import EmmentalModel
-from emmental.utils.parse_arg import parse_arg, parse_arg_to_config
+from emmental.utils.parse_args import parse_args, parse_args_to_config
 from emmental.utils.utils import str2bool
 from slicing_functions import slicing_function_dict, slicing_function_eval_dict
 from task import get_task
@@ -66,18 +66,18 @@ def get_parser():
         "ChexNet Runner", formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
 
-    parser = parse_arg(parser=parser)
+    parser = parse_args(parser=parser)
     add_application_args(parser)
     return parser
 
 
 def main(args):
-
+ 
     # Ensure that global state is fresh
     Meta.reset()
 
     # Add args to config
-    config = parse_arg_to_config(args)
+    config = parse_args_to_config(args)
 
     # Initialize Emmental
     emmental.init(config["meta_config"]["log_path"], config=config)
@@ -214,5 +214,4 @@ if __name__ == "__main__":
     # Getting parser and updating config
     parser = get_parser()
     args = parser.parse_args()
-
     main(args)

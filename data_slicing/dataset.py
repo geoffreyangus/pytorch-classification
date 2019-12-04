@@ -98,6 +98,7 @@ class CheXNetDataset(EmmentalDataset):
             Y_dict[label] = convert_labels(
                 torch.from_numpy(np.array(Y_dict[label])), "onezero", "categorical"
             )
+		
 
         super().__init__(name, X_dict=X_dict, Y_dict=Y_dict, uid="image_name")
 
