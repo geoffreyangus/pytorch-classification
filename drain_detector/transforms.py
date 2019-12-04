@@ -6,6 +6,9 @@ transforms_ingredient = Ingredient('transforms')
 
 @transforms_ingredient.config
 def config():
+    mean = [0.485, 0.456, 0.406]
+    std = [0.229, 0.224, 0.225]
+    
     preprocessing = {
         'x1': [
 #             {
@@ -21,16 +24,25 @@ def config():
 #                 }
 #             },
             {
-                'class_name': 'ToTensor',
+                'class_name': 'ToRGB',
                 'args': {}
             },
             {
-                'class_name': 'Normalize',
+                'class_name': 'Resize',
                 'args': {
-                    'mean': [0.5],
-                    'std': [0.5],
+                    'size': 224
                 }
-            }
+            },
+            {
+                'class_name': 'CenterCrop',
+                'args': {
+                    'size': 224
+                }
+            },
+            {
+                'class_name': 'ToTensor',
+                'args': {}
+            },
         ],
         'x2': [
 #             {
@@ -43,15 +55,16 @@ def config():
                 'class_name': 'ToTensor',
                 'args': {}
             },
+        ],
+        'joint': [
             {
                 'class_name': 'Normalize',
                 'args': {
-                    'mean': [0.5, 0.5],
-                    'std': [0.5, 0.5],
+                    'mean': mean,
+                    'std': std,
                 }
             }
-        ],
-        'joint': []
+        ]
     }
 
     # TODO: apply data augmentation to joint images
@@ -63,13 +76,17 @@ def config():
                 'class_name': 'ToPILImage',
                 'args': {}
             },
+#             {
+#                 'class_name': 'RandomAffine',
+#                 'args': {
+#                     'degrees': 60,
+#                     'translate': (0.1, 0.1),
+#                     'scale': (0.75, 1.25),
+#                 }
+#             },
             {
-                'class_name': 'RandomAffine',
-                'args': {
-                    'degrees': 60,
-                    'translate': (0.1, 0.1),
-                    'scale': (0.75, 1.25),
-                }
+                'class_name': 'RandomHorizontalFlip',
+                'args': {}
             },
             {
                 'class_name': 'ToTensor',
@@ -103,3 +120,13 @@ class Unsqueeze:
 
     def __call__(self, img):
         return np.expand_dims(img, axis=self.axis)
+
+    
+class ToRGB:
+    """
+    Converts PIL image to 3-channel RGB.
+    
+    Returns a PIL Image.
+    """
+    def __call__(self, img):
+        return img.convert('RGB')

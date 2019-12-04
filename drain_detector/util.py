@@ -3,7 +3,10 @@ import os.path as osp
 
 import transforms as custom_transforms
 import torchvision.transforms as transforms
+import torch
 import torch.nn.functional as F
+
+from emmental import Meta
 
 
 def compose(fn_list):
@@ -43,3 +46,30 @@ def require_dir(dir_str):
     if not(osp.exists(dir_str)):
         require_dir(osp.dirname(dir_str))
         os.mkdir(dir_str)
+        
+
+def write_to_file(file_name, value):
+    """
+    """
+    if not isinstance(value, str):
+        value = str(value)
+    fout = open(os.path.join(Meta.log_path, file_name), "w")
+    fout.write(value + "\n")
+    fout.close()
+        
+        
+def get_sample_weights(dataset, weight_task, class_probs):
+    """
+    """
+    classes = dataset.Y_dict[weight_task]
+    if isinstance(classes, torch.Tensor):
+        classes = classes.type(torch.LongTensor)
+    else:
+        classes = torch.LongTensor(classes)
+    counts = torch.bincount(classes)
+
+    weights = torch.zeros_like(classes, dtype=torch.float)
+    for example_idx, class_idx in enumerate(classes):
+        class_prob = class_probs[class_idx] / float(counts[class_idx])
+        weights[example_idx] = class_prob
+    return weights

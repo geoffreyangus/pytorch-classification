@@ -18,11 +18,11 @@ from sacred import Experiment
 from sacred.observers import FileStorageObserver
 from sacred.utils import apply_backspaces_and_linefeeds
 
-from dataset import DrainDetectionDataset
+import dataset as all_datasets
 import transforms as custom_transforms
 from transforms import transforms_ingredient
 import modules
-from util import ce_loss, output
+from util import ce_loss, output, get_sample_weights, write_to_file
 
 EXPERIMENT_NAME = 'trainer'
 ex = Experiment(EXPERIMENT_NAME, ingredients=[transforms_ingredient])
@@ -72,14 +72,12 @@ def config(transforms):
         }
     }
 
-    images_dir = '/lfs/1/gangus/repositories/pytorch-classification/catheter_detector/results/catheter_detect/test_latest/images'
-    split_dir = '/lfs/1/gangus/repositories/pytorch-classification/drain_detector/data/by-patient-id'
     dataset_configs = {
         'train': {
-            'class_name': 'DrainDetectionDataset',
+            'class_name': 'MIMICDrainDetectionDataset',
             'args': {
-                'split_dir': split_dir,
-                'images_dir': images_dir,
+                'df_path': '/lfs/1/gangus/repositories/pytorch-classification/drain_detector/data/mimic/mimic_all.csv',
+                'images_dir': '/lfs/1/gangus/data/mimic-jpg/physionet.org/files/mimic-cxr-jpg/2.0.0',
                 'transforms': {
                     'x1': transforms['preprocessing']['x1'] + transforms['augmentation']['x1'],
                     'x2': transforms['preprocessing']['x2'] + transforms['augmentation']['x2'],
@@ -91,8 +89,8 @@ def config(transforms):
         'valid': {
             'class_name': 'DrainDetectionDataset',
             'args': {
-                'split_dir': split_dir,
-                'images_dir': images_dir,
+                'df_path': '/lfs/1/gangus/data/chexnet/CXR8-ORIG-DRAIN-SLICE-DATA/valid.csv',
+                'images_dir': '/lfs/1/gangus/repositories/pytorch-classification/catheter_detector/results/catheter_detect/test_latest/images',
                 'transforms': {
                     'x1': transforms['preprocessing']['x1'],
                     'x2': transforms['preprocessing']['x2'],
@@ -118,9 +116,11 @@ def config(transforms):
 
     sampler_configs = {
         'train': {
-            'class_name': 'RandomSampler',
+            'class_name': 'WeightedRandomSampler',
             'args': {
-                'num_samples': 800,
+                'weight_task': 'drain',
+                'class_probs': [0.4, 0.6],
+                'num_samples': 100,
                 'replacement': True,
             }
         }
@@ -148,7 +148,7 @@ def config(transforms):
     }
 
     learner_config = {
-        'n_epochs': 100,
+        'n_epochs': 1,
         'valid_split': 'valid',
         'optimizer_config': {'optimizer': 'adam', 'lr': 0.01, 'l2': 0.000},
         'lr_scheduler_config': {
@@ -192,8 +192,7 @@ class TrainingHarness(object):
         for split in ['train', 'valid']:
             class_name = dataset_configs[split]['class_name']
             args = dataset_configs[split]['args']
-            datasets[split] = DrainDetectionDataset(
-                split_str=split,
+            datasets[split] = getattr(all_datasets, class_name)(
                 **args
             )
             _log.info(f'Loaded {split} split.')
@@ -269,9 +268,27 @@ class TrainingHarness(object):
         model = EmmentalModel(name='drain-detection-model', tasks=tasks)
         return model
 
-    def run(self):
+    @ex.capture
+    def run(self, _log):
         learner = EmmentalLearner()
         learner.learn(self.model, self.dataloaders)
+        
+        scores = self.model.score(self.dataloaders)
+        _log.info(f"Metrics: {scores}")
+        write_to_file("metrics.txt", scores)
+
+        # Save best metrics into file
+        _log.info(
+            f"Best metrics: "
+            f"{learner.logging_manager.checkpointer.best_metric_dict}"
+        )
+        write_to_file(
+            "best_metrics.txt",
+            learner.logging_manager.checkpointer.best_metric_dict,
+        )
+
+        _log.info(f"Logs written to {Meta.log_path}")
+        
 
 
 @ex.config_hook
