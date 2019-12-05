@@ -33,6 +33,7 @@ python run.py \
     --lr 0.001 \
     --l2 0.0 \
     --lr_scheduler plateau \
+    --lr_scheduler_step_unit epoch \
     --plateau_lr_scheduler_metric model/all/val/loss \
     --plateau_lr_scheduler_mode min \
     --plateau_lr_scheduler_factor 0.1 \
@@ -43,6 +44,6 @@ python run.py \
     --checkpoint_metric model/all/val/loss:min \
     --slices 0 \
     --tasks CXR8  \
-    # --max_data_samples 100\
     --device 0 \
     --dataparallel 1 \
+    # --max_data_samples 100\

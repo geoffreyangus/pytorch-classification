@@ -4,6 +4,7 @@ import os
 import sys
 
 import torch.nn as nn
+import torch
 
 import emmental
 from dataset import CXR8Dataset
@@ -13,7 +14,7 @@ from emmental.data import EmmentalDataLoader
 from emmental.learner import EmmentalLearner
 from emmental.model import EmmentalModel
 from emmental.utils.parse_args import parse_args, parse_args_to_config
-from emmental.utils.utils import str2bool
+from emmental.utils.utils import str2bool, move_to_device
 from slicing_functions import slicing_function_dict, slicing_function_eval_dict
 from task import get_task
 from task_config import CXR8_TASK_NAMES
@@ -123,6 +124,7 @@ def main(args):
     dataloaders = []
     tasks = []
 
+    task_to_class_weights = {}
     for split in ["train", "val", "test"]:
         dataset = CXR8Dataset(
             name=DATA_NAME,
@@ -147,7 +149,15 @@ def main(args):
             )
         )
         logger.info(f"Built dataloader for {dataset.name} {split} set.")
-    standard_tasks = get_task(task_names)
+        
+        if split == 'train':
+            for task_name in task_names:
+                task_labels = dataset.Y_dict[task_to_label_dict[task_name]]
+                # weighting scheme from paper: w_pos = |N| / (|P| + |N|), w_neg = |P| / (|P| + |N|)
+                w_pos = sum(task_labels == 2).type(torch.FloatTensor) / len(task_labels) # categorical: [0: abstain, 1: positive, 2: negative]
+                w_neg = sum(task_labels == 1).type(torch.FloatTensor) / len(task_labels)
+                task_to_class_weights[task_name] = move_to_device(torch.tensor([w_pos, w_neg]), Meta.config["model_config"]["device"])
+    standard_tasks = get_task(task_names, task_to_class_weights)
 
     # Slice indicator head module
     #slice_ind_head_module = nn.Sequential(nn.Linear(1024, 1024), nn.Linear(1024, 2))

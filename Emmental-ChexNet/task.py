@@ -8,6 +8,14 @@ from emmental.task import EmmentalTask
 from modules.torch_vision_encoder import TorchVisionEncoder
 
 
+def weighted_ce_loss(task_name, class_weights, immediate_ouput_dict, Y, active):
+    module_name = f"{task_name}_pred_head"
+    return F.cross_entropy(
+        immediate_ouput_dict[module_name][0][active], (Y.view(-1) - 1)[active],
+        weight=class_weights
+    )
+
+
 def ce_loss(task_name, immediate_ouput_dict, Y, active):
     module_name = f"{task_name}_pred_head"
     return F.cross_entropy(
@@ -20,7 +28,7 @@ def output(task_name, immediate_ouput_dict):
     return immediate_ouput_dict[module_name][0]
 
 
-def get_task(task_names):
+def get_task(task_names, task_to_class_weights):
 
     CNN_ENCODER = "densenet121"
 
@@ -48,10 +56,9 @@ def get_task(task_names):
                     "inputs": [("feature", 0)],
                 },
             ],
-            loss_func=partial(ce_loss, task_name),
+            loss_func=partial(weighted_ce_loss, task_name, task_to_class_weights[task_name]),
             output_func=partial(output, task_name),
-            scorer=Scorer(metrics=["accuracy", "f1"]),
+            scorer=Scorer(metrics=["accuracy", "f1", "roc_auc"]),
         )
         tasks.append(task)
-
     return tasks

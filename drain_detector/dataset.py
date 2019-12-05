@@ -1,5 +1,6 @@
 import os
 import os.path as osp
+import logging
 
 from PIL import Image
 import numpy as np
@@ -11,16 +12,26 @@ import torchvision.transforms as transforms
 import transforms as custom_transforms
 from util import compose
 
+logger = logging.getLogger(__name__)
+
 class MIMICDrainDetectionDataset(EmmentalDataset):
     
-    def __init__(self, df_path, images_dir, split=None, transforms=None, cxr_only=False):
+    def __init__(self, df_path, images_dir, split=None, transforms=None, cxr_only=False, frontal_only=True):
         assert cxr_only, 'CXR + seg not yet implemented'
 
         self.df = pd.read_csv(df_path, index_col=0)
         
+        # use orientation found in CheXNet (PA and AP)
+        if frontal_only:
+            frontal_df = self.df.loc[self.df['ViewPosition'].isin({'PA', 'AP'})]
+            logger.info(f'frontal only. using {len(frontal_df)} of {len(self.df)} images')
+            self.df = frontal_df
+        
         # use MIMIC split
         if split:
-            self.df = self.df.loc[self.df['split'] == split]
+            split_df = self.df.loc[self.df['split'] == split]
+            logger.info(f'using {split} split ({len(split_df)} of {len(self.df)} images)')
+            self.df = split_df
             
         self.images_dir = images_dir
         self.cxr_only = cxr_only

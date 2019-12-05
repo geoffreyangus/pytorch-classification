@@ -27,7 +27,7 @@ from util import ce_loss, output, get_sample_weights, write_to_file
 EXPERIMENT_NAME = 'trainer'
 ex = Experiment(EXPERIMENT_NAME, ingredients=[transforms_ingredient])
 ex.logger = logging.getLogger(__name__)
-ex.captured_out_filter = apply_backspaces_and_linefeeds
+ex.captured_out_filter = lambda captured_output: "Output capturing turned off."
 
 
 @ex.config
@@ -38,10 +38,13 @@ def config(transforms):
     cxr_only = True
     pretrain_imagenet = False
     pretrain_chexnet = False
+    drain_ratio = 0.6
+    frontal_only = True
+    
     assert not (pretrain_imagenet and pretrain_chexnet), \
         'pretrain_imagenet and pretrain_chexnet are mutually exclusive'
 
-    hypothesis_conditions = ['drain_detection']
+    hypothesis_conditions = ['MIMIC_drain_detection']
 
     # first hypothesis class
     if cxr_only:
@@ -56,6 +59,13 @@ def config(transforms):
         hypothesis_conditions.append('pretrain_chexnet')
     else:
         hypothesis_conditions.append('no_pretrain')
+    
+    hypothesis_conditions.append(f'{int(drain_ratio*100)}_drain_percent')
+    
+    if frontal_only:
+        hypothesis_conditions.append('frontal_only_mimic')
+    else:
+        hypothesis_conditions.append('full_mimic')
 
     exp_dir = path.join('experiments', *hypothesis_conditions)
     meta_config = {
@@ -83,7 +93,8 @@ def config(transforms):
                     'x2': transforms['preprocessing']['x2'] + transforms['augmentation']['x2'],
                     'joint': transforms['preprocessing']['joint'] + transforms['augmentation']['joint']
                 },
-                'cxr_only': cxr_only
+                'cxr_only': cxr_only,
+                'frontal_only': frontal_only
             }
         },
         'valid': {
@@ -119,7 +130,7 @@ def config(transforms):
             'class_name': 'WeightedRandomSampler',
             'args': {
                 'weight_task': 'drain',
-                'class_probs': [0.4, 0.6],
+                'class_probs': [1 - drain_ratio, drain_ratio],
                 'num_samples': 30000,
                 'replacement': True,
             }
@@ -152,12 +163,11 @@ def config(transforms):
         'valid_split': 'valid',
         'optimizer_config': {'optimizer': 'adam', 'lr': 0.01, 'l2': 0.000},
         'lr_scheduler_config': {
-            'warmup_steps': None,
-            'warmup_unit': 'batch',
             'lr_scheduler': 'step',
+            'lr_scheduler_step_unit': 'epoch',
             'step_config': {
-                'step_size': 6,
-                'gamma': 0.5
+               'step_size': 6,
+               'gamma': 0.5
             }
         },
     }
