@@ -76,14 +76,14 @@ def config():
                 'class_name': 'ToPILImage',
                 'args': {}
             },
-            {
-                'class_name': 'RandomAffine',
-                'args': {
-                    'degrees': 60,
-                    'translate': (0.1, 0.1),
-                    'scale': (0.75, 1.25),
-                }
-            },
+#            {
+#                'class_name': 'RandomAffine',
+#                'args': {
+#                    'degrees': 60,
+#                    'translate': (0.1, 0.1),
+#                    'scale': (0.75, 1.25),
+#                }
+#            },
             {
                 'class_name': 'RandomHorizontalFlip',
                 'args': {}

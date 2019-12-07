@@ -36,7 +36,7 @@ def config(transforms):
     Configuration for training harness.
     """
     cxr_only = True
-    pretrain_imagenet = False
+    pretrain_imagenet = True
     pretrain_chexnet = False
     drain_ratio = 0.6
     frontal_only = True
@@ -114,12 +114,12 @@ def config(transforms):
 
     dataloader_configs = {
         'train': {
-            'batch_size': 16,
+            'batch_size': 4,
             'num_workers': 8,
             'shuffle': False
         },
         'valid': {
-            'batch_size': 20,
+            'batch_size': 4,
             'num_workers': 8,
             'shuffle': True
         }
@@ -161,14 +161,14 @@ def config(transforms):
     learner_config = {
         'n_epochs': 100,
         'valid_split': 'valid',
-        'optimizer_config': {'optimizer': 'adam', 'lr': 0.01, 'l2': 0.000},
+        'optimizer_config': {'optimizer': 'adam', 'lr': 0.001, 'l2': 0.000},
         'lr_scheduler_config': {
-            'lr_scheduler': 'step',
-            'lr_scheduler_step_unit': 'epoch',
-            'step_config': {
-               'step_size': 6,
-               'gamma': 0.5
-            }
+#            'lr_scheduler': 'step',
+#            'lr_scheduler_step_unit': 'epoch',
+#            'step_config': {
+#               'step_size': 6,
+#               'gamma': 0.5
+#            }
         },
     }
 
