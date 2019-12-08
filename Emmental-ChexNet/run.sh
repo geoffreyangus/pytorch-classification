@@ -43,7 +43,7 @@ python run.py \
     --checkpointing 1 \
     --checkpoint_metric model/all/val/loss:min \
     --slices 1 \
-    --tasks TRIAGE  \
+    --tasks CXR8  \
     --device 0 \
     --dataparallel 1 \
-    # --max_data_samples 100\
+#    --max_data_samples 100\

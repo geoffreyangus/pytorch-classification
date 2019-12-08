@@ -161,7 +161,7 @@ def config(transforms):
     learner_config = {
         'n_epochs': 100,
         'valid_split': 'valid',
-        'optimizer_config': {'optimizer': 'adam', 'lr': 0.001, 'l2': 0.000},
+        'optimizer_config': {'optimizer': 'adam', 'lr': 0.01, 'l2': 0.000},
         'lr_scheduler_config': {
 #            'lr_scheduler': 'step',
 #            'lr_scheduler_step_unit': 'epoch',
