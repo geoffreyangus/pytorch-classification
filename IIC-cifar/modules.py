@@ -1,3 +1,15 @@
+import os
+import logging
+
+import torch.nn as nn
+import torch.nn.functional as F
+import torch
+from torchvision.models import densenet121
+
+from torch.nn import Linear
+
+logger = logging.getLogger(__name__)
+
 class ClippedDenseNet(nn.Module):
 
     def __init__(self, n_classes=14, pretrained=True, weights_path=None):
@@ -26,9 +38,9 @@ class ClippedDenseNet(nn.Module):
             if num_loaded < num_total:
                 missing_params = set(state_dict.keys()).symmetric_difference(
                     set(self.state_dict().keys()))
-                logging.info(
+                logger.info(
                     "Could not load these parameters due to name mismatch: " + str(missing_params))
-            logging.info(
+            logger.info(
                 f"Loaded {num_loaded}/{num_total} pretrained parameters")
 
         self.densenet121.classifier = nn.Identity()

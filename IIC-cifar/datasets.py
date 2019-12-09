@@ -1,3 +1,18 @@
+import os
+import sys
+import pickle
+from collections import defaultdict
+import random
+
+from PIL import Image
+import numpy as np
+import torch
+from torchvision.datasets.vision import VisionDataset
+from torchvision.datasets.utils import check_integrity, download_and_extract_archive
+from scipy.ndimage.filters import gaussian_filter
+
+from emmental.data import EmmentalDataset
+
 class CIFAR100(VisionDataset):
     """`CIFAR100 <https://www.cs.toronto.edu/~kriz/cifar.html>`_ Dataset.
     Args:
@@ -293,8 +308,9 @@ class IIC_CIFAR100(EmmentalCIFAR100):
                  pair_type='augment', pair_transform=None):
         """
         """
-        assert pair_type in {
-            'augment', 'subclass'}, f'pair_type {pair_type} must be in "augment", "subclass"'
+        if pair_type:
+            assert pair_type in {'augment', 'subclass'}, \
+                f'pair_type {pair_type} must be in "augment", "subclass"'
 
         super().__init__(root, train, transform, target_transform, download,
                          superclass=superclass, subsample_subclass=subsample_subclass,
@@ -311,10 +327,12 @@ class IIC_CIFAR100(EmmentalCIFAR100):
 
         if self.transform:
             x_dict['image_a'] = self.transform(x_dict['image_a'])
+            
         if self.pair_type == 'augment':
             x_dict['image_b'] = self.pair_transform(x_dict['image_a'])
             if self.transform:
                 x_dict['image_b'] = self.transform(x_dict['image_b'])
+                
             x_dict['filename_b'] = x_dict['filename_a']
             y_dict['subclass_b'] = y_dict['subclass_a']
         elif self.pair_type == 'subclass':
@@ -323,6 +341,7 @@ class IIC_CIFAR100(EmmentalCIFAR100):
             x_dict['image_b'] = self.X_dict['image_a'][b_idx]
             if self.transform:
                 x_dict['image_b'] = self.transform(x_dict['image_b'])
+                
             x_dict['filename_b'] = self.X_dict['filename_a'][b_idx]
             y_dict['subclass_b'] = self.Y_dict['subclass_a'][b_idx]
 

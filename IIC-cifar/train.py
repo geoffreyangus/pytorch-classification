@@ -1,3 +1,4 @@
+import sys
 import os
 import os.path as osp
 import logging
@@ -5,6 +6,7 @@ from functools import partial
 
 import torch
 import torch.nn as nn
+import torch.utils.data as torch_data
 
 import emmental
 from emmental import Meta
@@ -19,8 +21,10 @@ import sacred
 from sacred import Experiment
 from sacred.observers import FileStorageObserver
 
+import datasets as all_datasets
+import modules
 from transforms import transforms_ingredient
-from utils import ce_loss, output, pair_iic_loss, pair_output
+from utils import ce_loss, output, pair_iic_loss, pair_output, compose, write_to_file
 
 EXPERIMENT_NAME = 'trainer'
 ex = Experiment(EXPERIMENT_NAME, ingredients=[transforms_ingredient])
@@ -35,17 +39,17 @@ def config(transforms):
     # primary experiments
 
     clustering = False
-    pairing_type = None
+    pair_type = None
 
     hypothesis_conditions = ['cifar_superclass']
     if clustering:
-        assert pairing_type is not None, \
+        assert pair_type is not None, \
             'if clustering, must specify a pairing_type'
-        hypothesis_conditions += ['clustering', pairing_type]
+        hypothesis_conditions += ['clustering', pair_type]
     else:
         hypothesis_conditions += ['baseline']
 
-    exp_dir = path.join('experiments', *hypothesis_conditions)
+    exp_dir = osp.join('experiments', *hypothesis_conditions)
 
     # Emmental configs
 
@@ -60,9 +64,9 @@ def config(transforms):
     }
 
     learner_config = {
-        'n_epochs': 100,
+        'n_epochs': 1,
         'valid_split': 'valid',
-        'optimizer_config': {'optimizer': 'adam', 'lr': 0.001, 'l2': 0.000},
+        'optimizer_config': {'optimizer': 'adam', 'lr': 0.01, 'l2': 0.000},
         'lr_scheduler_config': {}
     }
 
@@ -87,7 +91,7 @@ def config(transforms):
                 'transform': transforms['augmentation'] + transforms['preprocessing'],
                 'target_transform': None,
                 'download': False,
-                'pair_type': 'augment',
+                'pair_type': pair_type,
                 'pair_transform': transforms['g']
             }
         },
@@ -99,7 +103,7 @@ def config(transforms):
                 'transform': transforms['preprocessing'],
                 'target_transform': None,
                 'download': False,
-                'pair_type': 'augment',
+                'pair_type': pair_type,
                 'pair_transform': transforms['g']
             }
         }
@@ -108,21 +112,30 @@ def config(transforms):
     dataloader_configs = {
         'train': {
             'batch_size': 16,
-            'num_workers': 8,
-            'shuffle': True
+            'num_workers': 16,
+            'shuffle': False
         },
         'valid': {
             'batch_size': 16,
-            'num_workers': 8,
+            'num_workers': 16,
             'shuffle': False
         }
     }
 
     sampler_configs = {
-        'class_name': 'RandomSampler',
-        'args': {
-            'num_samples': 64,
-            'replacement': True
+        'train': {
+            'class_name': 'RandomSampler',
+            'args': {
+                'num_samples': 64,
+                'replacement': True
+            }
+        },
+        'valid': {
+            'class_name': 'RandomSampler',
+            'args': {
+                'num_samples': 64,
+                'replacement': True
+            }
         }
     }
 
@@ -130,8 +143,9 @@ def config(transforms):
 
     task_to_label_dict = {
         'superclass': 'superclass',
-        'iic': 'superclass' # dummy label set
     }
+    if clustering:
+        task_to_label_dict['iic'] = 'superclass' # dummy label
 
     encoder_class = 'ClippedDenseNet'
     encoder_args = {
@@ -163,17 +177,31 @@ class TrainingHarness(object):
         self.model = self._init_model()
 
     @ex.capture
-    def _init_meta(self, _seed, exp_dir, meta_config, model_config,
+    def _init_meta(self, _run, _log, _seed, exp_dir, meta_config, model_config,
                    learner_config, logging_config):
-        emmental.init(path.join(exp_dir, '_emmental_logs'))
+        is_unobserved = _run.meta_info['options']['--unobserved']
+
+        # only if 'checkpointing' is defined, True, and the experiment is observed
+        logging_config = dict(logging_config)
+        logging_config['checkpointing'] = logging_config.get('checkpointing', False) \
+                                          and not is_unobserved
+
+        emmental.init(osp.join(exp_dir, '_emmental_logs'))
         Meta.update_config(
             config={
-                'meta_config': {**meta_config, 'seed': _seed},
-                'model_config': model_config,
+                'meta_config': {
+                    **meta_config,
+                    'seed': _seed,
+                },
+                'model_config': {
+                    **model_config
+                },
                 'learner_config': learner_config,
                 'logging_config': logging_config
             }
         )
+        ex.info.update({'emmental_log_path': Meta.log_path})
+        _log.info(f'emmental_log_path set to {Meta.log_path}')
 
     @ex.capture
     def _init_datasets(self, _log, dataset_configs):
@@ -181,9 +209,13 @@ class TrainingHarness(object):
         for split in ['train', 'valid']:
             class_name = dataset_configs[split]['class_name']
             args = dataset_configs[split]['args']
-            datasets[split] = getattr(all_datasets, class_name)(
-                **args
-            )
+            args = {
+                **args,
+                'transform': compose(args['transform']),
+                'target_transform': compose(args['target_transform']),
+                'pair_transform': compose(args['pair_transform'])
+            }
+            datasets[split] = getattr(all_datasets, class_name)(**args)
             _log.info(f'Loaded {split} split.')
         return datasets
 
@@ -193,8 +225,8 @@ class TrainingHarness(object):
         for split in ['train', 'valid']:
             dataloader_config = dataloader_configs[split]
             dataloader_config = {
-                'sampler': self._init_sampler(split),
-                **dataloader_config
+                **dataloader_config,
+                'sampler': self._init_sampler(split)
             }
             dl = EmmentalDataLoader(
                 task_to_label_dict=task_to_label_dict,
@@ -228,58 +260,83 @@ class TrainingHarness(object):
     def _init_model(self,
                     encoder_class, encoder_args,
                     decoder_class, decoder_args,
-                    task_to_label_dict, task_to_cardinality_dict
-                    clustering, cluster_class, cluster_args):
+                    cluster_class, cluster_args,
+                    task_to_label_dict, clustering):
         encoder_module = getattr(modules, encoder_class)(**encoder_args)
         decoder_module = getattr(modules, decoder_class)(**decoder_args)
-        tasks = [
-            EmmentalTask(
-                name='superclass',
-                module_pool=nn.ModuleDict({
-                    'encoder': encoder_module,
-                    'decoder': decoder_module
-                }),
-                task_flow=[
-                    {
-                        'name': 'encoder',
-                        'module': 'encoder',
-                        'inputs': [('_input_', 'image_a'), ('_input_', 'image_b')]
-                    },
-                    {
-                        'name': 'superclass_pred_head',
-                        'module': 'decoder',
-                        'inputs': [('encoder', 0)]
-                    }
-                ],
-                loss_func=partial(ce_loss, 'superclass'),
-                output_func=partial(output, 'superclass'),
-                scorer=Scorer(metrics=["accuracy"]),
-            )
-        ]
         if clustering:
             cluster_module = getattr(modules, cluster_class)(**cluster_args)
-            tasks.append(EmmentalTask(
-                name='iic',
-                module_pool=nn.ModuleDict({
-                    'encoder': encoder_module,
-                    'cluster': cluster_module
-                }),
-                task_flow=[
-                    {
-                        'name': 'encoder',
-                        'module': 'encoder',
-                        'inputs': [('_input_', 'image_a'), ('_input_', 'image_b')]
-                    },
-                    {
-                        'name': 'iic_pred_head',
-                        'module': 'cluster',
-                        'inputs': [('encoder', 0), ('encoder', 1)]
-                    }
-                ],
-                loss_func=partial(pair_loss_iic, 'iic'),
-                output_func=partial(pair_output, 'iic'),
-                scorer=Scorer(metrics=[]),
-            ))
+            tasks = [
+                EmmentalTask(
+                    name='superclass',
+                    module_pool=nn.ModuleDict({
+                        'encoder': encoder_module,
+                        'decoder': decoder_module
+                    }),
+                    task_flow=[
+                        {
+                            'name': 'encoder',
+                            'module': 'encoder',
+                            'inputs': [('_input_', 'image_a'), ('_input_', 'image_b')]
+                        },
+                        {
+                            'name': 'superclass_pred_head',
+                            'module': 'decoder',
+                            'inputs': [('encoder', 0)]
+                        }
+                    ],
+                    loss_func=partial(ce_loss, 'superclass'),
+                    output_func=partial(output, 'superclass'),
+                    scorer=Scorer(metrics=["accuracy"]),
+                ),
+                EmmentalTask(
+                    name='iic',
+                    module_pool=nn.ModuleDict({
+                        'encoder': encoder_module,
+                        'cluster': cluster_module
+                    }),
+                    task_flow=[
+                        {
+                            'name': 'encoder',
+                            'module': 'encoder',
+                            'inputs': [('_input_', 'image_a'), ('_input_', 'image_b')]
+                        },
+                        {
+                            'name': 'iic_pred_head',
+                            'module': 'cluster',
+                            'inputs': [('encoder', 0), ('encoder', 1)]
+                        }
+                    ],
+                    loss_func=partial(pair_iic_loss, 'iic'),
+                    output_func=partial(pair_output, 'iic'),
+                    scorer=Scorer(metrics=[]),
+                )
+            ]
+        else:
+            tasks = [
+                EmmentalTask(
+                    name='superclass',
+                    module_pool=nn.ModuleDict({
+                        'encoder': encoder_module,
+                        'decoder': decoder_module
+                    }),
+                    task_flow=[
+                        {
+                            'name': 'encoder',
+                            'module': 'encoder',
+                            'inputs': [('_input_', 'image_a')]
+                        },
+                        {
+                            'name': 'superclass_pred_head',
+                            'module': 'decoder',
+                            'inputs': [('encoder', 0)]
+                        }
+                    ],
+                    loss_func=partial(ce_loss, 'superclass'),
+                    output_func=partial(output, 'superclass'),
+                    scorer=Scorer(metrics=["accuracy"]),
+                )
+            ]
         model = EmmentalModel(name='iic-model', tasks=tasks)
         return model
 
@@ -292,15 +349,16 @@ class TrainingHarness(object):
         _log.info(f"Metrics: {scores}")
         write_to_file("metrics.txt", scores)
 
-        # Save best metrics into file
-        _log.info(
-            f"Best metrics: "
-            f"{learner.logging_manager.checkpointer.best_metric_dict}"
-        )
-        write_to_file(
-            "best_metrics.txt",
-            learner.logging_manager.checkpointer.best_metric_dict,
-        )
+        if Meta.config['logging_config']['checkpointing']:
+            # Save best metrics into file
+            _log.info(
+                f"Best metrics: "
+                f"{learner.logging_manager.checkpointer.best_metric_dict}"
+            )
+            write_to_file(
+                "best_metrics.txt",
+                learner.logging_manager.checkpointer.best_metric_dict,
+            )
 
         _log.info(f"Logs written to {Meta.log_path}")
 

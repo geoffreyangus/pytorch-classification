@@ -10,18 +10,18 @@ def config():
     std = [0.229, 0.224, 0.225]
 
     preprocessing = [
-        {
-            'class_name': 'Resize',
-            'args': {
-                'size': 224
-            }
-        },
-        {
-            'class_name': 'CenterCrop',
-            'args': {
-                'size': 224
-            }
-        },
+#         {
+#             'class_name': 'Resize',
+#             'args': {
+#                 'size': 64
+#             }
+#         },
+#         {
+#             'class_name': 'CenterCrop',
+#             'args': {
+#                 'size': 64
+#             }
+#         },
         {
             'class_name': 'ToTensor',
             'args': {}
@@ -44,6 +44,10 @@ def config():
 
     g = [
         {
+            'class_name': 'ToPILImage',
+            'args': {}
+        },
+        {
             'class_name': 'RandomHorizontalFlip',
             'args': {}
         },
@@ -61,11 +65,11 @@ def config():
                 'saturation': 0.5,
                 'hue': 0.0
             }
-        }
+        },
         {
             'class_name': 'RandomGrayscale',
             'args': {
                 'p': 0.5
             }
-        },
+        }
     ]
