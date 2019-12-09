@@ -79,7 +79,7 @@ parser.add_argument("--restart", default=False, action="store_true")
 parser.add_argument("--save_freq", type=int, default=5)
 parser.add_argument("--test_code", default=False, action="store_true")
 
-parser.add_argument("--head_B_first", default=False, action="store_true")
+parser.add_argument("--head_A_first", default=False, action="store_true")
 parser.add_argument("--batchnorm_track", default=False, action="store_true")
 
 # data transforms
@@ -177,9 +177,9 @@ def train():
   if config.restart:
     optimiser.load_state_dict(dict["optimiser"])
 
-  heads = ["A", "B"]
-  if hasattr(config, "head_B_first") and config.head_B_first:
-    heads = ["B", "A"]
+  heads = ["B", "A"]
+  if config.head_A_first:
+    heads = ["A", "B"]
 
   # Results
   # ----------------------------------------------------------------------
@@ -232,7 +232,7 @@ def train():
   # Train
   # ------------------------------------------------------------------------
 
-  for e_i in xrange(next_epoch, config.num_epochs):
+  for e_i in range(next_epoch, config.num_epochs):
     print("Starting e_i: %d %s" % (e_i, datetime.now()))
     sys.stdout.flush()
 
@@ -259,7 +259,7 @@ def train():
       avg_loss_no_lamb = 0.
       avg_loss_count = 0
 
-      for tup in itertools.izip(*iterators):
+      for tup in zip(*iterators):
         net.module.zero_grad()
 
         if not config.no_sobel:
@@ -279,7 +279,7 @@ def train():
                                     config.input_sz).to(torch.float32).cuda()
 
         curr_batch_sz = tup[0][0].shape[0]
-        for d_i in xrange(config.num_dataloaders):
+        for d_i in range(config.num_dataloaders):
           img1, img2, affine2_to_1, mask_img1 = tup[d_i]
           assert (img1.shape[0] == curr_batch_sz)
 
@@ -314,7 +314,7 @@ def train():
         avg_loss_batch = None  # avg over the heads
         avg_loss_no_lamb_batch = None
 
-        for i in xrange(config.num_sub_heads):
+        for i in range(config.num_sub_heads):
           loss, loss_no_lamb = loss_fn(x1_outs[i],
                                        x2_outs[i],
                                        all_affine2_to_1=all_affine2_to_1,
@@ -379,6 +379,15 @@ def train():
     print(
       "Pre: time %s: \n %s" % (datetime.now(), nice(config.epoch_stats[-1])))
     sys.stdout.flush()
+
+    if "Potsdam" in config.dataset:
+      if (e_i == 4) and max(config.epoch_acc) < 0.52:
+        print("only got %s 4th, restarting" % max(config.epoch_acc))
+        return  # restart
+
+      if (e_i == 10) and max(config.epoch_acc) < 0.64:
+        print("only got %s 10th, restarting" % max(config.epoch_acc))
+        return  # restart
 
     axarr[0].clear()
     axarr[0].plot(config.epoch_acc)
