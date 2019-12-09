@@ -150,14 +150,14 @@ def main(args):
         )
         logger.info(f"Built dataloader for {dataset.name} {split} set.")
         
-        if split == 'train':
-            for task_name in task_names:
-                task_labels = dataset.Y_dict[task_to_label_dict[task_name]]
-                # weighting scheme from paper: w_pos = |N| / (|P| + |N|), w_neg = |P| / (|P| + |N|)
-                w_pos = sum(task_labels == 2).type(torch.FloatTensor) / len(task_labels) # categorical: [0: abstain, 1: positive, 2: negative]
-                w_neg = sum(task_labels == 1).type(torch.FloatTensor) / len(task_labels)
-                task_to_class_weights[task_name] = move_to_device(torch.tensor([w_pos, w_neg]), Meta.config["model_config"]["device"])
-    standard_tasks = get_task(task_names, task_to_class_weights)
+#         if split == 'train':
+#             for task_name in task_names:
+#                 task_labels = dataset.Y_dict[task_to_label_dict[task_name]]
+#                 # weighting scheme from paper: w_pos = |N| / (|P| + |N|), w_neg = |P| / (|P| + |N|)
+#                 w_pos = sum(task_labels == 2).type(torch.FloatTensor) / len(task_labels) # categorical: [0: abstain, 1: positive, 2: negative]
+#                 w_neg = sum(task_labels == 1).type(torch.FloatTensor) / len(task_labels)
+#                 task_to_class_weights[task_name] = move_to_device(torch.tensor([w_pos, w_neg]), Meta.config["model_config"]["device"])
+    standard_tasks = get_task(task_names)
 
     # Slice indicator head module
     #slice_ind_head_module = nn.Sequential(nn.Linear(1024, 1024), nn.Linear(1024, 2))

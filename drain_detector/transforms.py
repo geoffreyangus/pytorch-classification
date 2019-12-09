@@ -72,26 +72,26 @@ def config():
         'x1': [],
         'x2': [],
         'joint': [
-            {
-                'class_name': 'ToPILImage',
-                'args': {}
-            },
-#            {
-#                'class_name': 'RandomAffine',
-#                'args': {
-#                    'degrees': 60,
-#                    'translate': (0.1, 0.1),
-#                    'scale': (0.75, 1.25),
-#                }
-#            },
-            {
-                'class_name': 'RandomHorizontalFlip',
-                'args': {}
-            },
-            {
-                'class_name': 'ToTensor',
-                'args': {}
-            }
+#             {
+#                 'class_name': 'ToPILImage',
+#                 'args': {}
+#             },
+# #            {
+# #                'class_name': 'RandomAffine',
+# #                'args': {
+# #                    'degrees': 60,
+# #                    'translate': (0.1, 0.1),
+# #                    'scale': (0.75, 1.25),
+# #                }
+# #            },
+#             {
+#                 'class_name': 'RandomHorizontalFlip',
+#                 'args': {}
+#             },
+#             {
+#                 'class_name': 'ToTensor',
+#                 'args': {}
+#             }
         ]
     }
 

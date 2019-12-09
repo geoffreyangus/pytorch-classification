@@ -16,9 +16,9 @@ def score_slices(model, dataloaders, task_names, slice_func_dict):
         for dataloader in dataloaders:
             logging.info(f"Evaluating on task {task_name}, {dataloader.split} split")
             pred_dict = model.predict(dataloader, return_preds=True)
-            golds = pred_dict["golds"][task_name]
-            probs = pred_dict["probs"][task_name]
-            preds = pred_dict["preds"][task_name]
+            golds = np.array(pred_dict["golds"][task_name])
+            probs = np.array(pred_dict["probs"][task_name])
+            preds = np.array(pred_dict["preds"][task_name])
             split_scores = scorer.score(golds, probs, preds)
             scores.update(split_scores)
             for slice_name, slice_func in slice_func_dict.items():
@@ -29,7 +29,7 @@ def score_slices(model, dataloaders, task_names, slice_func_dict):
                 for metric_name, metric_value in slice_scores.items():
                     identifier = "/".join(
                         [
-                            f"{task_name}:{slice_name}",
+                            f"{task_name}_{slice_name}",
                             dataloader.data_name,
                             dataloader.split,
                             metric_name,

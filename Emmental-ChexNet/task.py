@@ -28,7 +28,7 @@ def output(task_name, immediate_ouput_dict):
     return immediate_ouput_dict[module_name][0]
 
 
-def get_task(task_names, task_to_class_weights):
+def get_task(task_names):
 
     CNN_ENCODER = "densenet121"
 
@@ -56,9 +56,9 @@ def get_task(task_names, task_to_class_weights):
                     "inputs": [("feature", 0)],
                 },
             ],
-            loss_func=partial(weighted_ce_loss, task_name, task_to_class_weights[task_name]),
+            loss_func=partial(ce_loss, task_name),
             output_func=partial(output, task_name),
-            scorer=Scorer(metrics=["accuracy", "f1", "roc_auc"]),
+            scorer=Scorer(metrics=["roc_auc"]),
         )
         tasks.append(task)
     return tasks

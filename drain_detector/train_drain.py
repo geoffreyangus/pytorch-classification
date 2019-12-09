@@ -77,7 +77,7 @@ def config(transforms):
         'checkpointing': True,
         'checkpointer_config': {
             'checkpoint_metric': {
-                'drain/drain-detection-dataset/valid/roc_auc': 'max'
+                'drain/drain-detection-dataset/valid/loss': 'min'
             }
         }
     }
@@ -161,7 +161,7 @@ def config(transforms):
     learner_config = {
         'n_epochs': 100,
         'valid_split': 'valid',
-        'optimizer_config': {'optimizer': 'adam', 'lr': 0.01, 'l2': 0.000},
+        'optimizer_config': {'optimizer': 'adam', 'lr': 0.001, 'l2': 0.000},
         'lr_scheduler_config': {
 #            'lr_scheduler': 'step',
 #            'lr_scheduler_step_unit': 'epoch',
@@ -271,7 +271,7 @@ class TrainingHarness(object):
                 loss_func=partial(ce_loss, task_name),
                 output_func=partial(output, task_name),
                 scorer=Scorer(
-                    metrics=['accuracy', 'roc_auc', 'precision', 'recall', 'f1']),
+                    metrics=['roc_auc']),
             )
             for task_name in task_to_label_dict.keys()
         ]
