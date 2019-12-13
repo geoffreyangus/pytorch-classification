@@ -10,11 +10,25 @@ from utils import convert_labels
 
 
 class CXR8Dataset(EmmentalDataset):
-    """
-    Dataset to load NIH Chest X-ray 14 dataset
+    """Dataset to load NIH Chest X-ray 14 dataset
 
     Modified from reproduce-chexnet repo
     https://github.com/jrzech/reproduce-chexnet
+
+    Args:
+        name (string): name of dataset. Used by Emmental package.
+        path_to_images (string): path to CXR8 images.
+        path_to_labels (string): path to CXR8 labels.
+        split (string): Fold of labels CSV to use.
+        transform (callable, optional): A function/transform that takes in an
+            PIL image and returns a transformed version. E.g, ``transforms.RandomCrop``
+        sample (int): Number of samples from labels CSV to use. sample==0 uses
+            all samples in the dataset. Useful for testing.
+        finding (string): Allows filtration by some finding. Use string "any" to
+            use the entire dataset.
+        seed (int): Random seed initialization for dataset.
+        add_binary_triage_label (bool): adds a binary label for overall abnormality
+            condition of a given sample.
     """
 
     def __init__(
@@ -97,7 +111,8 @@ class CXR8Dataset(EmmentalDataset):
 
         for label in self.PRED_LABEL:
             Y_dict[label] = convert_labels(
-                torch.from_numpy(np.array(Y_dict[label])), "onezero", "categorical"
+                torch.from_numpy(
+                    np.array(Y_dict[label])), "onezero", "categorical"
             )
 
         super().__init__(name, X_dict=X_dict, Y_dict=Y_dict, uid="image_name")
@@ -106,8 +121,17 @@ class CXR8Dataset(EmmentalDataset):
         return len(self.df)
 
     def __getitem__(self, index):
+        """
+        Args:
+            index (int): Index
 
-        x_dict = {name: feature[index] for name, feature in self.X_dict.items()}
+        Returns:
+            tuple: (x: dict, y: dict) where x is a dictionary mapping all
+                possible inputs to EmmentalModel and y is a dictionary for all
+                possible labels to EmmentalTasks
+        """
+        x_dict = {name: feature[index]
+                  for name, feature in self.X_dict.items()}
         y_dict = {name: label[index] for name, label in self.Y_dict.items()}
 
         image = Image.open(
